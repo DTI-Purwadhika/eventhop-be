@@ -1,7 +1,6 @@
 package com.riri.eventhop.exception;
 
-import com.riri.eventhop.exception.ResourceNotFoundException;
-import com.riri.eventhop.response.ApiResponse;
+import com.riri.eventhop.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,31 +16,31 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ApiResponse<Void>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Response<Void>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getAllErrors().stream()
                 .map(error -> error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
-        return ApiResponse.error(HttpStatus.BAD_REQUEST, message);
+        return Response.failed(HttpStatus.BAD_REQUEST.value(), message);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return ApiResponse.error(HttpStatus.NOT_FOUND, ex.getMessage());
+    public ResponseEntity<Response<Void>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return Response.failed(HttpStatus.NOT_FOUND.value(), ex.getMessage());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException ex) {
+    public ResponseEntity<Response<Void>> handleConstraintViolationException(ConstraintViolationException ex) {
         String message = ex.getConstraintViolations().stream()
                 .map(violation -> violation.getMessage())
                 .collect(Collectors.joining(", "));
-        return ApiResponse.error(HttpStatus.BAD_REQUEST, message);
+        return Response.failed(HttpStatus.BAD_REQUEST.value(), message);
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
-        return ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    public ResponseEntity<Response<Void>> handleGenericException(Exception ex) {
+        return Response.failed(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage());
     }
 }
