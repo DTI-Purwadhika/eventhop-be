@@ -1,6 +1,5 @@
 package com.riri.eventhop.events.service.impl;
 
-import com.riri.eventhop.DashboardDTO;
 import com.riri.eventhop.events.service.EventService;
 import com.riri.eventhop.events.dto.CreateEventRequest;
 import com.riri.eventhop.events.dto.EventDTO;
@@ -15,7 +14,9 @@ import com.riri.eventhop.users.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,11 +38,19 @@ public class EventServiceImpl implements EventService {
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
     }
-
+    public List<Event> getEvents(String filter, String category, int limit, int page) {
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        // Implement your filtering logic here
+        Specification<Event> spec = (root, query, criteriaBuilder) -> {
+            // Add your filtering criteria here
+            return criteriaBuilder.conjunction();
+        };
+        return eventRepository.findAll(spec, pageable).getContent();
+    }
     @Override
     @Transactional
-    public EventDTO createEvent(CreateEventRequest request, Long userId, List<String> imageUrls) {
-        User user = userRepository.findById(userId)
+    public EventDTO createEvent(CreateEventRequest request, String clerkId, List<String> imageUrls) {
+        User user = userRepository.findByClerkId(clerkId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Event event = modelMapper.map(request, Event.class);
@@ -49,10 +58,11 @@ public class EventServiceImpl implements EventService {
         event.setCode(UUID.randomUUID().toString());
         event.setCreatedAt(Instant.now());
         event.setUpdatedAt(Instant.now());
-        event.setImageUrls(new HashSet<>(imageUrls)); // Set multiple image URLs
+        event.setImageUrls(new HashSet<>(imageUrls));
 
         if (user.getOrganizerName() == null) {
-            user.setOrganizerName(user.getName() + "'s Events"); // Default organizer name
+            // Use a default name or prompt the user to set an organizer name
+            user.setOrganizerName("New Organizer");
         }
 
         Event savedEvent = eventRepository.save(event);
@@ -65,19 +75,19 @@ public class EventServiceImpl implements EventService {
                 .map(event -> modelMapper.map(event, EventSummaryDTO.class));
     }
 
-    @Override
-    public DashboardDTO getOrganizerDashboard(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        DashboardDTO dashboard = new DashboardDTO();
-        dashboard.setOrganizerName(user.getOrganizerName());
-        dashboard.setTotalEvents(eventRepository.countByOrganizerId(userId));
-        dashboard.setUpcomingEvents(eventRepository.countByOrganizerIdAndStartTimeAfter(userId, Instant.now()));
-        dashboard.setPastEvents(eventRepository.countByOrganizerIdAndEndTimeBefore(userId, Instant.now()));
-
-        return dashboard;
-    }
+//    @Override
+//    public DashboardDTO getOrganizerDashboard(Long userId) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+//
+//        DashboardDTO dashboard = new DashboardDTO();
+//        dashboard.setOrganizerName(user.getOrganizerName());
+//        dashboard.setTotalEvents(eventRepository.countByOrganizerId(userId));
+//        dashboard.setUpcomingEvents(eventRepository.countByOrganizerIdAndStartTimeAfter(userId, Instant.now()));
+//        dashboard.setPastEvents(eventRepository.countByOrganizerIdAndEndTimeBefore(userId, Instant.now()));
+//
+//        return dashboard;
+//    }
 
     @Override
     public EventDTO getEventById(Long id) {

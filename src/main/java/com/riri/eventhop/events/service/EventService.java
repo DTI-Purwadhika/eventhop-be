@@ -1,10 +1,7 @@
 package com.riri.eventhop.events.service;
 
-import com.riri.eventhop.DashboardDTO;
-import com.riri.eventhop.events.dto.CreateEventRequest;
-import com.riri.eventhop.events.dto.EventDTO;
-import com.riri.eventhop.events.dto.EventSummaryDTO;
-import com.riri.eventhop.events.dto.UpdateEventRequest;
+import com.riri.eventhop.events.dto.*;
+import com.riri.eventhop.events.entity.Event;
 import com.riri.eventhop.events.enums.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,7 +9,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface EventService {
-    EventDTO createEvent(CreateEventRequest request, Long userId, List<String> imageUrls);
+    List<Event> getEvents(String filter, String category, int limit, int page);
+    EventDTO createEvent(CreateEventRequest request, String clerkId, List<String> imageUrls);
     Page<EventSummaryDTO> getEventsByOrganizer(Long userId, Pageable pageable);
     EventDTO getEventById(Long id);
     Page<EventSummaryDTO> getAllEvents(Pageable pageable);
@@ -21,5 +19,5 @@ public interface EventService {
     Page<EventSummaryDTO> searchEvents(String keyword, Pageable pageable);
     EventDTO updateEvent(Long id, UpdateEventRequest request);
     void deleteEvent(Long id);
-    DashboardDTO getOrganizerDashboard(Long userId);
+//    DashboardDTO getOrganizerDashboard(Long userId);
 }

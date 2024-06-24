@@ -51,4 +51,5 @@ public class Event {
     public boolean isDeleted() {
         return deletedAt != null;
     }
+
 }

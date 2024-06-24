@@ -9,5 +9,6 @@ public enum Category {
     Festivals,
     Technology,
     Online,
-    Special
+    Special,
+    Other
 }

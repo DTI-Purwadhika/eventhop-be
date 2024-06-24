@@ -1,7 +1,8 @@
 package com.riri.eventhop.events.controller;
 
-//import com.riri.eventhop.Image.ImageStorageService;
-import com.riri.eventhop.DashboardDTO;
+import com.riri.eventhop.Image.ImageStorageService;
+//import com.riri.eventhop.DashboardDTO;
+import com.riri.eventhop.events.entity.Event;
 import com.riri.eventhop.events.service.EventService;
 import com.riri.eventhop.events.dto.CreateEventRequest;
 import com.riri.eventhop.events.dto.EventDTO;
@@ -9,7 +10,7 @@ import com.riri.eventhop.events.dto.EventSummaryDTO;
 import com.riri.eventhop.events.dto.UpdateEventRequest;
 import com.riri.eventhop.events.enums.Category;
 import com.riri.eventhop.response.Response;
-import com.riri.eventhop.users.entity.CustomUserDetails;
+import com.riri.eventhop.users.entity.User;
 import com.riri.eventhop.users.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,8 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,41 +32,51 @@ public class EventController {
     private EventService eventService;
     private final UserService userService;
     private PagedResourcesAssembler<EventSummaryDTO> pagedResourcesAssembler;
-//    private ImageStorageService imageStorageService;
+    private ImageStorageService imageStorageService;
     public EventController(EventService eventService, PagedResourcesAssembler<EventSummaryDTO> pagedResourcesAssembler, UserService userService
-//            , ImageStorageService imageStorageService
+            , ImageStorageService imageStorageService
     ){
         this.eventService = eventService;
         this.pagedResourcesAssembler = pagedResourcesAssembler;
         this.userService = userService;
-//        this.imageStorageService = imageStorageService;
+        this.imageStorageService = imageStorageService;
     }
+
     @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ResponseEntity<Response<EventDTO>> createEvent(@RequestBody CreateEventRequest request,
                                                           @RequestParam("imageUrls") List<String> imageUrls,
-                                                          Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        EventDTO createdEvent = eventService.createEvent(request, userDetails.getUser().getId(), imageUrls);
+                                                          @AuthenticationPrincipal Jwt jwt) {
+        String clerkId = jwt.getSubject();
+        User user = userService.findOrCreateUser(clerkId);
+        EventDTO createdEvent = eventService.createEvent(request, String.valueOf(user.getId()), imageUrls);
         return Response.success("Event created successfully", createdEvent);
+    }
+    @GetMapping
+    public List<Event> getAllEvents(
+            @RequestParam(required = false, defaultValue = "all") String filter,
+            @RequestParam(required = false, defaultValue = "all") String category,
+            @RequestParam(required = false, defaultValue = "8") int limit,
+            @RequestParam(required = false, defaultValue = "1") int page) {
+        return eventService.getEvents(filter, category, limit, page);
     }
 
     @GetMapping("/organizer")
     public ResponseEntity<Response<PagedModel<EntityModel<EventSummaryDTO>>>> getOrganizerEvents(
-            Authentication authentication, Pageable pageable) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Page<EventSummaryDTO> events = eventService.getEventsByOrganizer(userDetails.getUser().getId(), pageable);
+            @AuthenticationPrincipal Jwt jwt, Pageable pageable) {
+        String clerkId = jwt.getSubject();
+        User user = userService.findOrCreateUser(clerkId);
+        Page<EventSummaryDTO> events = eventService.getEventsByOrganizer(user.getId(), pageable);
         PagedModel<EntityModel<EventSummaryDTO>> pagedModel = pagedResourcesAssembler.toModel(events);
         return Response.success("Organizer events retrieved successfully", pagedModel);
     }
 
-    @GetMapping("/organizer/dashboard")
-    public ResponseEntity<Response<DashboardDTO>> getOrganizerDashboard(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        DashboardDTO dashboard = eventService.getOrganizerDashboard(userDetails.getUser().getId());
-        return Response.success("Organizer dashboard retrieved successfully", dashboard);
-    }
+//    @GetMapping("/organizer/dashboard")
+//    public ResponseEntity<Response<DashboardDTO>> getOrganizerDashboard(Authentication authentication) {
+//        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+//        DashboardDTO dashboard = eventService.getOrganizerDashboard(userDetails.getUser().getId());
+//        return Response.success("Organizer dashboard retrieved successfully", dashboard);
+//    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Response<EventDTO>> getEvent(@PathVariable Long id) {
@@ -71,12 +84,12 @@ public class EventController {
         return Response.success("Event retrieved successfully", event);
     }
 
-    @GetMapping
-    public ResponseEntity<Response<PagedModel<EntityModel<EventSummaryDTO>>>> getAllEvents(Pageable pageable) {
-        Page<EventSummaryDTO> events = eventService.getAllEvents(pageable);
-        PagedModel<EntityModel<EventSummaryDTO>> pagedModel = pagedResourcesAssembler.toModel(events);
-        return Response.success("Events retrieved successfully", pagedModel);
-    }
+//    @GetMapping
+//    public ResponseEntity<Response<PagedModel<EntityModel<EventSummaryDTO>>>> getAllEvents(Pageable pageable) {
+//        Page<EventSummaryDTO> events = eventService.getAllEvents(pageable);
+//        PagedModel<EntityModel<EventSummaryDTO>> pagedModel = pagedResourcesAssembler.toModel(events);
+//        return Response.success("Events retrieved successfully", pagedModel);
+//    }
 
     @GetMapping("/search")
     public ResponseEntity<Response<PagedModel<EntityModel<EventSummaryDTO>>>> searchEvents(@RequestParam String keyword, Pageable pageable) {

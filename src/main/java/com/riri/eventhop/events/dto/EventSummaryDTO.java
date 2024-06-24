@@ -16,5 +16,4 @@ public class EventSummaryDTO {
     private String mainImage;
     private Category category;
     private String location;
-    private boolean trending;
 }

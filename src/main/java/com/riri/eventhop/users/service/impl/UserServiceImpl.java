@@ -1,14 +1,11 @@
 package com.riri.eventhop.users.service.impl;
 
 import com.riri.eventhop.exception.ApplicationException;
-import com.riri.eventhop.exception.ResourceNotFoundException;
-import com.riri.eventhop.users.DTO.RegisterRequest;
+import com.riri.eventhop.users.dto.UserProfileDTO;
 import com.riri.eventhop.users.entity.User;
 import com.riri.eventhop.users.repository.UserRepository;
 import com.riri.eventhop.users.service.UserService;
 import lombok.extern.java.Log;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,36 +16,35 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     @Transactional
-    public User register(RegisterRequest registerRequest) {
-        if (userRepository.existsByUsernameOrEmail(registerRequest.getUsername(), registerRequest.getEmail())) {
-            throw new ApplicationException("Username or email already exists");
-        }
-
-        User newUser = registerRequest.toEntity();
-        newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        return userRepository.save(newUser);
+    public User findOrCreateUser(String clerkId) {
+        return userRepository.findByClerkId(clerkId)
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setClerkId(clerkId);
+                    return userRepository.save(newUser);
+                });
     }
 
     @Override
-    public User findByUsernameOrEmail(String usernameOrEmail) {
-        return userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
-                .orElseThrow(() -> new ApplicationException("User not found with username or email: " + usernameOrEmail));
+    public UserProfileDTO getUserProfile(String clerkId) {
+        User user = findOrCreateUser(clerkId);
+        return mapUserToProfileDTO(user);
     }
 
-
     @Override
-    public User findById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException("User not found with id: " + id));
+    @Transactional
+    public UserProfileDTO updateUserProfile(String clerkId, UserProfileDTO profileDTO) {
+        User user = findOrCreateUser(clerkId);
+        updateUserFromProfileDTO(user, profileDTO);
+        User updatedUser = userRepository.save(user);
+        return mapUserToProfileDTO(updatedUser);
     }
 
     @Override
@@ -58,26 +54,61 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteById(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new ApplicationException("User not found with id: " + id);
-        }
-        userRepository.deleteById(id);
+    public User addRole(String clerkId, String role) {
+        User user = findOrCreateUser(clerkId);
+        user.getRoles().add(role);
+        return userRepository.save(user);
     }
 
     @Override
-    public User profile() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return findByUsernameOrEmail(username);
+    @Transactional
+    public User removeRole(String clerkId, String role) {
+        User user = findOrCreateUser(clerkId);
+        user.getRoles().remove(role);
+        return userRepository.save(user);
     }
 
-//    @Transactional
-//    public void updateAvatar(Long userId, String imageUrl) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-//
-//        user.setAvatarUrl(imageUrl); // Assuming User entity has a field for avatar URL
-//
-//        userRepository.save(user);
-//    }
+    @Override
+    @Transactional
+    public User updateReferralCode(String clerkId, String referralCode) {
+        User user = findOrCreateUser(clerkId);
+        user.setReferralCode(referralCode);
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public User updatePoints(String clerkId, Long points) {
+        User user = findOrCreateUser(clerkId);
+        user.setPoints(points);
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public User updateOrganizerName(String clerkId, String organizerName) {
+        User user = findOrCreateUser(clerkId);
+        user.setOrganizerName(organizerName);
+        return userRepository.save(user);
+    }
+
+    private UserProfileDTO mapUserToProfileDTO(User user) {
+        UserProfileDTO dto = new UserProfileDTO();
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setImageUrl(user.getImageUrl());
+        dto.setOrganizerName(user.getOrganizerName());
+        dto.setReferralCode(user.getReferralCode());
+        dto.setPoints(user.getPoints());
+        dto.setRoles(user.getRoles());
+        return dto;
+    }
+
+    private void updateUserFromProfileDTO(User user, UserProfileDTO dto) {
+        // Only update fields that are not managed by Clerk
+        user.setOrganizerName(dto.getOrganizerName());
+        user.setReferralCode(dto.getReferralCode());
+        user.setPoints(dto.getPoints());
+        // Roles should be managed separately for security reasons
+    }
 }

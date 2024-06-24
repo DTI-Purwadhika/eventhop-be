@@ -1,13 +1,15 @@
 package com.riri.eventhop.users.controller;
 
-import com.riri.eventhop.helpers.Claims;
-import com.riri.eventhop.users.DTO.RegisterRequest;
+import com.riri.eventhop.users.dto.UserProfileDTO;
+import com.riri.eventhop.users.entity.User;
 import com.riri.eventhop.users.service.UserService;
 import com.riri.eventhop.response.Response;
 
 import jakarta.annotation.security.RolesAllowed;
 import lombok.extern.java.Log;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,18 +24,20 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
-        return Response.success("User registered successfully", userService.register(registerRequest));
-    }
+
 
     @RolesAllowed({"ROLE_USER", "ROLE_ADMIN"})
     @GetMapping("/profile")
-    public ResponseEntity<?> profile() {
-        var claims = Claims.getClaimsFromJwt();
-        var email = (String) claims.get("sub");
-        log.info("Claims are: " + claims.toString());
-        log.info("User profile requested for user: " + email);
-        return Response.success("User profile", userService.findByUsernameOrEmail(email));
+    public ResponseEntity<?> getProfile(@AuthenticationPrincipal Jwt jwt) {
+        String clerkId = jwt.getSubject();
+        UserProfileDTO profile = userService.getUserProfile(clerkId);
+        return Response.success("User profile retrieved successfully", profile);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@AuthenticationPrincipal Jwt jwt, @RequestBody UserProfileDTO profileDTO) {
+        String clerkId = jwt.getSubject();
+        UserProfileDTO updatedProfile = userService.updateUserProfile(clerkId, profileDTO);
+        return Response.success("User profile updated successfully", updatedProfile);
     }
 }
