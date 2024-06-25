@@ -32,11 +32,6 @@ build/
 # Ignore environment-specific files (e.g., .env)
 .env
 
-# Ignore all PEM files
-*.pem
-
-
-
 # Ignore Maven wrapper and target exceptions
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
