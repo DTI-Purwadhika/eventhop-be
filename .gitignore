@@ -34,6 +34,7 @@ build/
 
 #
 *.pem
+certs/
 
 # Ignore Maven wrapper and target exceptions
 !.mvn/wrapper/maven-wrapper.jar
