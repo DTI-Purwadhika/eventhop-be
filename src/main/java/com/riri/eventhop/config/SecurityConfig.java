@@ -2,6 +2,7 @@
 
 
     import jakarta.servlet.http.HttpServletResponse;
+    import lombok.RequiredArgsConstructor;
     import lombok.extern.java.Log;
     import org.springframework.context.annotation.Bean;
     import org.springframework.context.annotation.Configuration;
@@ -25,9 +26,10 @@
     @Configuration
     @EnableWebSecurity
     @EnableMethodSecurity
+    @RequiredArgsConstructor
     @Log
     public class SecurityConfig {
-
+        private final RsaKeyConfigProperties rsaKeyConfigProperties;
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             return http
@@ -36,6 +38,7 @@
                     .authorizeHttpRequests(auth -> {
                         auth.requestMatchers("/api/v1/events/**").permitAll();
                         auth.requestMatchers("/api/v1/categories/**").permitAll();
+                        auth.requestMatchers("/api/v1/images/**").hasRole("ORGANIZER");
 //                        auth.requestMatchers("/api/v1/dashboard/**").hasRole("ORGANIZER"); flow not clear yet
                         auth.anyRequest().authenticated();
                     })
@@ -71,8 +74,13 @@
 
         @Bean
         public JwtDecoder jwtDecoder() {
-            return NimbusJwtDecoder.withJwkSetUri("https://dynamic-terrapin-33.clerk.accounts.dev/.well-known/jwks.json").build();
+            return NimbusJwtDecoder.withPublicKey(rsaKeyConfigProperties.publicKey()).build();
         }
+
+//        @Bean
+//        public JwtDecoder jwtDecoder() {
+//            return NimbusJwtDecoder.withJwkSetUri("https://dynamic-terrapin-33.clerk.accounts.dev/.well-known/jwks.json").build();
+//        }
 
         @Bean
         public JwtAuthenticationConverter jwtAuthenticationConverter() {
