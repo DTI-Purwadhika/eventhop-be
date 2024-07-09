@@ -49,6 +49,7 @@ public class AuthController {
                     user.getName(),
                     user.getRoles().iterator().next().name().toLowerCase(),
                     user.getAvatarUrl(),
+                    user.getReferralCode(),
                     jwt,
                     refreshToken
             );
@@ -74,6 +75,7 @@ public class AuthController {
                     user.getName(),
                     user.getRoles().iterator().next().name().toLowerCase(),
                     user.getAvatarUrl(),
+                    user.getReferralCode(),
                     jwt,
                     refreshToken
             );

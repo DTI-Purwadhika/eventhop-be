@@ -12,6 +12,7 @@ public class JwtAuthenticationResponse {
     private String name;
     private String roles;
     private String avatarUrl;
+    private String referralCode;
     private String token;
     private String refreshToken;
 }

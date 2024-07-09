@@ -1,5 +1,6 @@
 package com.riri.eventhop.feature2.users;
 
+//import com.riri.eventhop.feature2.referrals.Referral;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,14 +14,15 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_referral_code", columnList = "referralCode")
+})
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,13 +54,12 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String referralCode;
 
-    private Long points;
-
-    private Instant pointsExpiryDate;
-
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     private Set<UserRole> roles = new HashSet<>();
+
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    private List<Referral> referrals;
 
     @CreatedDate
     private Instant createdAt;
@@ -130,4 +131,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return enabled && !isDeleted();
     }
+
 }
