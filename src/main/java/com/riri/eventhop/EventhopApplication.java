@@ -6,10 +6,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableCaching
 @EnableConfigurationProperties(RsaKeyConfigProperties.class)
+@ComponentScan(basePackages = {"com.riri.eventhop"})
 @Log
 public class EventhopApplication {
 
