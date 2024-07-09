@@ -52,7 +52,7 @@
                     .authorizeHttpRequests(auth -> {
                         auth.requestMatchers("/api/v1/events/**").permitAll();
                         auth.requestMatchers("/api/v1/categories/**").permitAll();
-                        auth.requestMatchers("/api/v1/auth/login", "/api/v1/auth/login/oauth").permitAll();
+                        auth.requestMatchers("/api/v1/auth/**").permitAll();
                         auth.requestMatchers("/api/v1/dashboard/**").hasRole("ORGANIZER");
                         auth.anyRequest().authenticated();
                     })
