@@ -1,9 +1,11 @@
 package com.riri.eventhop.feature2.users;
 
-//import com.riri.eventhop.feature2.referrals.Referral;
+import com.riri.eventhop.feature2.referrals.discounts.Discount;
+import com.riri.eventhop.feature2.referrals.points.Point;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
@@ -15,13 +17,15 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_user_email", columnList = "email"),
-        @Index(name = "idx_user_referral_code", columnList = "referralCode")
+        @Index(name = "idx_user_referral_code", columnList = "referralCode"),
+        @Index(name = "idx_user_deleted_at", columnList = "deletedAt")
 })
 public class User implements UserDetails {
     @Id
@@ -39,11 +43,13 @@ public class User implements UserDetails {
     private String email;
 
     @NotBlank
+
     private String password;
 
     @Size(min = 0, max = 100, message = "bio must be between {min} and {max} characters")
     private String bio;
 
+    @Pattern(regexp = "^\\+?[0-9]{10,14}$", message = "Invalid phone number")
     private String phone;
     private String location;
     private String avatarUrl;
@@ -58,8 +64,11 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Set<UserRole> roles = new HashSet<>();
 
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-//    private List<Referral> referrals;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Point> points = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Discount> discounts = new ArrayList<>();
 
     @CreatedDate
     private Instant createdAt;

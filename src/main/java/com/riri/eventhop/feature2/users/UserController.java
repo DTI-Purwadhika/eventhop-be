@@ -1,11 +1,8 @@
 package com.riri.eventhop.feature2.users;
 
-//import com.riri.eventhop.feature2.referrals.ReferralService;
-import com.nimbusds.openid.connect.sdk.claims.UserInfo;
-import com.riri.eventhop.feature2.users.dto.RegisterRequest;
+
 import com.riri.eventhop.feature2.users.dto.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +12,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/profile")

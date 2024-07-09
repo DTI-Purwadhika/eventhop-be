@@ -1,11 +1,10 @@
 package com.riri.eventhop.feature2.users;
 
 import com.riri.eventhop.config.JwtTokenProvider;
-import com.riri.eventhop.feature2.users.dto.JwtAuthenticationResponse;
-import com.riri.eventhop.feature2.users.dto.LoginRequest;
-import com.riri.eventhop.feature2.users.dto.OAuthLoginRequest;
+import com.riri.eventhop.feature2.users.dto.*;
 import com.riri.eventhop.response.Response;
 import com.riri.eventhop.exception.ApplicationException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +26,22 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final UserService userService;
+    @PostMapping("/register")
+    public ResponseEntity<Response<RegisterResponse>> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+        User user = userService.registerUser(registerRequest);
 
+        RegisterResponse registerResponse = new RegisterResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getReferralCode()
+                // Add other fields as needed, but avoid sensitive information
+
+        );
+
+        return Response.success("User registered successfully", registerResponse);
+    }
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
