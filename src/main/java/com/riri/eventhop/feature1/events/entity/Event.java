@@ -13,6 +13,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 
@@ -84,17 +85,17 @@ public class Event {
     @JoinColumn(name = "organizer_id")
     private User organizer;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    private List<Ticket> tickets;
-
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    private List<Review> reviews;
-
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    private List<Transaction> transactions;
-
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    private List<Promotion> promotions;
+//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+//    private List<Ticket> tickets;
+//
+//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+//    private List<Review> reviews;
+//
+//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+//    private List<Transaction> transactions;
+//
+//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+//    private List<Promotion> promotions;
 
 
 

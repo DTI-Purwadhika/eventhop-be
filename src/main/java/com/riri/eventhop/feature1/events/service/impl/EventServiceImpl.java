@@ -3,7 +3,7 @@ package com.riri.eventhop.feature1.events.service.impl;
 import com.riri.eventhop.feature1.events.dto.EventDetailsRequest;
 import com.riri.eventhop.feature1.events.dto.EventDetailsResponse;
 import com.riri.eventhop.feature1.events.dto.EventSummaryResponse;
-import com.riri.eventhop.feature1.events.entity.EventCategory;
+import com.riri.eventhop.feature1.events.dto.GetAllEventsParams;
 import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.repository.EventRepository;
 import com.riri.eventhop.feature1.events.service.EventService;
@@ -15,12 +15,10 @@ import com.riri.eventhop.feature2.users.UserRepository;
 import com.riri.eventhop.feature2.users.UserService;
 import com.riri.eventhop.util.CustomPageable;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -29,7 +27,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,63 +40,123 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final ImageStorageService imageStorageService;
-    @Cacheable(value = "upcomingEvents", key = "#pageable", unless = "#result.isEmpty()")
-    @Override
-    public Page<EventSummaryResponse> getAllUpcomingEvents(CustomPageable pageable) {
-        if (pageable == null) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Pageable cannot be null");
-        }
-        Instant now = Instant.now();
-        Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndStartTimeAfter(now, pageable.toPageRequest());
-        return mapEventPageToSummaryResponsePage(eventsPage);
+//    @Cacheable(value = "upcomingEvents", key = "#pageable", unless = "#result.isEmpty()")
+//    @Override
+//    public Page<EventSummaryResponse> getAllUpcomingEvents(CustomPageable pageable) {
+//        if (pageable == null) {
+//            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Pageable cannot be null");
+//        }
+//        Instant now = Instant.now();
+//        Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndStartTimeAfter(now, pageable.toPageRequest());
+//        return mapEventPageToSummaryResponsePage(eventsPage);
+//    }
+//
+//    @Cacheable(value = "upcomingEventsByCategory", key = "#category + ':' + #pageable", unless = "#result.isEmpty()")
+//    @Override
+//    public Page<EventSummaryResponse> getUpcomingEventsByCategory(String category, CustomPageable pageable) {
+//        if (category == null || pageable == null) {
+//            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Category and pageable cannot be null");
+//        }
+//        try {
+//            Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndEventCategoryAndStartTimeAfter(
+//                    EventCategory.valueOf(category.toUpperCase()), Instant.now(), pageable.toPageRequest());
+//            return mapEventPageToSummaryResponsePage(eventsPage);
+//        } catch (IllegalArgumentException e) {
+//            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Invalid event category: " + category);
+//        }
+//    }
+//
+//    @Cacheable(value = "upcomingEventsByLocation", key = "#location + ':' + #pageable", unless = "#result.isEmpty()")
+//    @Override
+//    public Page<EventSummaryResponse> getUpcomingEventsByLocation(String location, CustomPageable pageable) {
+//        if (location == null || pageable == null) {
+//            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Location and pageable cannot be null");
+//        }
+//        Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndLocationContainingIgnoreCaseAndStartTimeAfter(
+//                location, Instant.now(), pageable.toPageRequest());
+//        return mapEventPageToSummaryResponsePage(eventsPage);
+//    }
+//
+//    @Cacheable(value = "upcomingEventsSorted", key = "#pageable", unless = "#result.isEmpty()")
+//    @Override
+//    public Page<EventSummaryResponse> getUpcomingEventsSortedByClosestTime(CustomPageable pageable) {
+//        if (pageable == null) {
+//            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Pageable cannot be null");
+//        }
+//        Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndStartTimeAfterOrderByStartTimeAsc(Instant.now(), pageable.toPageRequest());
+//        return mapEventPageToSummaryResponsePage(eventsPage);
+//    }
+//
+//    @Cacheable(value = "upcomingEventsSearch", key = "#keyword + ':' + #pageable", unless = "#result.isEmpty()")
+//    @Override
+//    public Page<EventSummaryResponse> searchUpcomingEvents(String keyword, CustomPageable pageable) {
+//        if (keyword == null || pageable == null) {
+//            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Keyword and pageable cannot be null");
+//        }
+//        Instant now = Instant.now();
+//        Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndStartTimeAfterAndTitleContainingIgnoreCaseOrDeletedAtIsNullAndStartTimeAfterAndDescriptionContainingIgnoreCase(
+//                now, keyword, now, keyword, pageable.toPageRequest());
+//        return mapEventPageToSummaryResponsePage(eventsPage);
+//    }
+
+@Cacheable(value = "filteredEvents", key = "#params.toString()", unless = "#result.isEmpty()")
+@Override
+public Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params) {
+    CustomPageable customPageable = params.getCustomPageable();
+
+    String category = params.getCategory() != null ? params.getCategory().name() : null;
+    String minPrice = params.getMinPrice() != null ? params.getMinPrice().toString() : null;
+    String maxPrice = params.getMaxPrice() != null ? params.getMaxPrice().toString() : null;
+    String fromDate = params.getFromDate() != null ? params.getFromDate().toString() : null;
+    String untilDate = params.getUntilDate() != null ? params.getUntilDate().toString() : null;
+    String userId = params.getUserId() != null ? params.getUserId().toString() : null;
+
+    int offset = (int) customPageable.toPageRequest().getOffset();
+    int limit = customPageable.toPageRequest().getPageSize();
+
+    List<Event> events = eventRepository.findFilteredEvents(
+            category,
+            params.getFilter(),
+            minPrice,
+            maxPrice,
+            fromDate,
+            untilDate,
+            params.getLocation(),
+            userId,
+            offset,
+            limit
+    );
+
+    long totalCount = countFilteredEvents(params);
+
+    return new PageImpl<>(events.stream().map(this::mapEventToSummaryResponse).collect(Collectors.toList()),
+            customPageable.toPageRequest(), totalCount);
+}
+
+    private long countFilteredEvents(GetAllEventsParams params) {
+        String category = params.getCategory() != null ? params.getCategory().name() : null;
+        String minPrice = params.getMinPrice() != null ? params.getMinPrice().toString() : null;
+        String maxPrice = params.getMaxPrice() != null ? params.getMaxPrice().toString() : null;
+        String fromDate = params.getFromDate() != null ? params.getFromDate().toString() : null;
+        String untilDate = params.getUntilDate() != null ? params.getUntilDate().toString() : null;
+        String userId = params.getUserId() != null ? params.getUserId().toString() : null;
+
+        return eventRepository.countFilteredEvents(
+                category,
+                params.getFilter(),
+                minPrice,
+                maxPrice,
+                fromDate,
+                untilDate,
+                params.getLocation(),
+                userId
+        );
     }
 
-    @Cacheable(value = "upcomingEventsByCategory", key = "#category + ':' + #pageable", unless = "#result.isEmpty()")
-    @Override
-    public Page<EventSummaryResponse> getUpcomingEventsByCategory(String category, CustomPageable pageable) {
-        if (category == null || pageable == null) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Category and pageable cannot be null");
-        }
-        try {
-            Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndEventCategoryAndStartTimeAfter(
-                    EventCategory.valueOf(category.toUpperCase()), Instant.now(), pageable.toPageRequest());
-            return mapEventPageToSummaryResponsePage(eventsPage);
-        } catch (IllegalArgumentException e) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Invalid event category: " + category);
-        }
-    }
-
-    @Cacheable(value = "upcomingEventsByLocation", key = "#location + ':' + #pageable", unless = "#result.isEmpty()")
-    @Override
-    public Page<EventSummaryResponse> getUpcomingEventsByLocation(String location, CustomPageable pageable) {
-        if (location == null || pageable == null) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Location and pageable cannot be null");
-        }
-        Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndLocationContainingIgnoreCaseAndStartTimeAfter(
-                location, Instant.now(), pageable.toPageRequest());
-        return mapEventPageToSummaryResponsePage(eventsPage);
-    }
-
-    @Cacheable(value = "upcomingEventsSorted", key = "#pageable", unless = "#result.isEmpty()")
-    @Override
-    public Page<EventSummaryResponse> getUpcomingEventsSortedByClosestTime(CustomPageable pageable) {
-        if (pageable == null) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Pageable cannot be null");
-        }
-        Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndStartTimeAfterOrderByStartTimeAsc(Instant.now(), pageable.toPageRequest());
-        return mapEventPageToSummaryResponsePage(eventsPage);
-    }
-
-    @Cacheable(value = "upcomingEventsSearch", key = "#keyword + ':' + #pageable", unless = "#result.isEmpty()")
-    @Override
-    public Page<EventSummaryResponse> searchUpcomingEvents(String keyword, CustomPageable pageable) {
-        if (keyword == null || pageable == null) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Keyword and pageable cannot be null");
-        }
-        Instant now = Instant.now();
-        Page<Event> eventsPage = eventRepository.findByDeletedAtIsNullAndStartTimeAfterAndTitleContainingIgnoreCaseOrDeletedAtIsNullAndStartTimeAfterAndDescriptionContainingIgnoreCase(
-                now, keyword, now, keyword, pageable.toPageRequest());
-        return mapEventPageToSummaryResponsePage(eventsPage);
+    @CacheEvict(value = "filteredEvents", allEntries = true)
+    public void evictFilteredEventsCache() {
+        // This method is intentionally empty.
+        // The @CacheEvict annotation takes care of evicting the cache.
     }
 
     @Override
@@ -109,7 +169,7 @@ public class EventServiceImpl implements EventService {
         return mapEventToDetailsResponse(event);
     }
 
-    @CacheEvict(value = {"upcomingEvents", "upcomingEventsByCategory", "upcomingEventsByLocation", "upcomingEventsSorted", "upcomingEventsSearch"}, allEntries = true)
+    @CacheEvict(value = "filteredEvents", allEntries = true)
     @Override
     @Transactional
     @PreAuthorize("hasRole('USER')")
@@ -136,7 +196,7 @@ public class EventServiceImpl implements EventService {
         return mapEventToDetailsResponse(savedEvent);
     }
 
-    @CacheEvict(value = {"upcomingEvents", "upcomingEventsByCategory", "upcomingEventsByLocation", "upcomingEventsSorted", "upcomingEventsSearch"}, allEntries = true)
+    @CacheEvict(value = "filteredEvents", allEntries = true)
     @Override
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -189,6 +249,7 @@ public class EventServiceImpl implements EventService {
         event.softDelete();
         event.setUpdatedAt(Instant.now());
         eventRepository.save(event);
+        evictFilteredEventsCache();
     }
     private String getCurrentUserEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
