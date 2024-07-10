@@ -28,6 +28,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     @Override
+    @Transactional
     public User registerUser(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ApplicationException("Email is already in use");
@@ -54,7 +55,7 @@ public class UserServiceImpl implements UserService {
     private String generateReferralCode() {
         return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
-
+    @Transactional
     private void addPointsToReferrer(User referrer) {
         Point point = new Point();
         point.setUser(referrer);
@@ -83,12 +84,22 @@ public class UserServiceImpl implements UserService {
                 .sum();
     }
     @Override
-    public Integer getAvailableDiscount(User user) {
+    public Discount getAvailableReferralDiscount(User user) {
         return user.getDiscounts().stream()
-                .filter(d -> d.getExpiryDate().isAfter(LocalDate.now().atStartOfDay()))
-                .map(Discount::getDiscountPercentage)
+                .filter(d -> d.getExpiryDate().isAfter(LocalDateTime.now()) && !d.isUsed())
                 .findFirst()
-                .orElse(0);
+                .orElse(null);
+    }
+
+
+    @Override
+    @Transactional
+    public void useReferralDiscount(User user) {
+        Discount referralDiscount = getAvailableReferralDiscount(user);
+        if (referralDiscount != null) {
+            referralDiscount.setUsed(true);
+            userRepository.save(user);
+        }
     }
     @Override
     @Transactional

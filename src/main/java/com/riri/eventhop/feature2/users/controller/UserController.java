@@ -1,6 +1,7 @@
 package com.riri.eventhop.feature2.users.controller;
 
 
+import com.riri.eventhop.feature2.users.entity.Discount;
 import com.riri.eventhop.feature2.users.service.UserService;
 import com.riri.eventhop.feature2.users.dto.DiscountResponse;
 import com.riri.eventhop.feature2.users.dto.PointResponse;
@@ -71,10 +72,21 @@ public class UserController {
 
         if (user == null) {
             log.warn("User not found for email: {}", email);
-            return Response.failed(HttpStatus.NOT_FOUND.value(),"User not found" );
+            return Response.failed(HttpStatus.NOT_FOUND.value(), "User not found");
         }
-        Integer discount = userService.getAvailableDiscount(user);
-        DiscountResponse discountResponse = new DiscountResponse(discount);
+
+        Discount discount = userService.getAvailableReferralDiscount(user);
+        if (discount == null) {
+            log.info("No available discounts found for user {}", email);
+            return Response.success("No discounts available", null);
+        }
+
+        DiscountResponse discountResponse = new DiscountResponse(
+                discount.getDiscountPercentage(),
+                discount.isUsed(),
+                discount.getExpiryDate()
+        );
+
         return Response.success("Discount retrieved successfully", discountResponse);
     }
 //    @PostMapping("/forgot-password")

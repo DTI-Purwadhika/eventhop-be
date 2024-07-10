@@ -24,5 +24,7 @@ public class Discount {
     @Max(value = 100, message = "Percentage must be at most 100")
     private Integer discountPercentage;
 
+    private boolean used = false;
+
     private LocalDateTime expiryDate;
 }
