@@ -1,5 +1,6 @@
 package com.riri.eventhop.config;
 
+import com.riri.eventhop.feature1.events.helper.StringToEventCategoryConverter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

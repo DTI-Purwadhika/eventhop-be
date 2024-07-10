@@ -6,7 +6,7 @@
     import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
     import com.nimbusds.jose.jwk.source.JWKSource;
     import com.nimbusds.jose.proc.SecurityContext;
-    import com.riri.eventhop.feature2.users.UserDetailsServiceImpl;
+    import com.riri.eventhop.feature2.users.service.UserDetailsServiceImpl;
     import lombok.RequiredArgsConstructor;
     import lombok.extern.java.Log;
     import org.springframework.context.annotation.Bean;
