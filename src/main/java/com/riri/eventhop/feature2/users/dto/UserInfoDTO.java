@@ -1,11 +1,10 @@
 package com.riri.eventhop.feature2.users.dto;
 
-import com.riri.eventhop.feature2.users.User;
-import com.riri.eventhop.feature2.users.UserRole;
+import com.riri.eventhop.feature2.users.entity.User;
+import com.riri.eventhop.feature2.users.entity.UserRole;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
 import java.util.Set;
 
 @Data
