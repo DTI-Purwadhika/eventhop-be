@@ -1,10 +1,6 @@
 package com.riri.eventhop.feature1.events.entity;
 
-import com.riri.eventhop.feature1.promotions.Promotion;
-import com.riri.eventhop.feature1.reviews.Review;
-import com.riri.eventhop.feature1.tickets.Ticket;
-import com.riri.eventhop.feature1.transactions.Transaction;
-import com.riri.eventhop.feature2.users.User;
+import com.riri.eventhop.feature2.users.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -13,9 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
 
 @Entity
 @Data
@@ -29,7 +23,6 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Code must not be blank")
     @Column(unique = true)
     private String code;
 
@@ -84,6 +77,7 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "organizer_id")
     private User organizer;
+
 
 //    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //    private List<Ticket> tickets;

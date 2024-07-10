@@ -1,18 +1,15 @@
 package com.riri.eventhop.feature1.events.service.impl;
 
-import com.riri.eventhop.feature1.events.dto.EventDetailsRequest;
-import com.riri.eventhop.feature1.events.dto.EventDetailsResponse;
-import com.riri.eventhop.feature1.events.dto.EventSummaryResponse;
-import com.riri.eventhop.feature1.events.dto.GetAllEventsParams;
+import com.riri.eventhop.feature1.events.dto.*;
 import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.repository.EventRepository;
 import com.riri.eventhop.feature1.events.service.EventService;
 import com.riri.eventhop.exception.ApplicationException;
 import com.riri.eventhop.feature1.images.ImageStorageService;
-import com.riri.eventhop.feature2.users.User;
-import com.riri.eventhop.feature2.users.UserRole;
+import com.riri.eventhop.feature2.users.entity.User;
+import com.riri.eventhop.feature2.users.entity.UserRole;
 import com.riri.eventhop.feature2.users.UserRepository;
-import com.riri.eventhop.feature2.users.UserService;
+import com.riri.eventhop.feature2.users.service.UserService;
 import com.riri.eventhop.util.CustomPageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +24,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -99,39 +95,39 @@ public class EventServiceImpl implements EventService {
 //        return mapEventPageToSummaryResponsePage(eventsPage);
 //    }
 
-@Cacheable(value = "filteredEvents", key = "#params.toString()", unless = "#result.isEmpty()")
-@Override
-public Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params) {
-    CustomPageable customPageable = params.getCustomPageable();
+    @Cacheable(value = "filteredEvents", key = "#params.toString()", unless = "#result.isEmpty()")
+    @Override
+    public Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params) {
+        CustomPageable customPageable = params.getCustomPageable();
 
-    String category = params.getCategory() != null ? params.getCategory().name() : null;
-    String minPrice = params.getMinPrice() != null ? params.getMinPrice().toString() : null;
-    String maxPrice = params.getMaxPrice() != null ? params.getMaxPrice().toString() : null;
-    String fromDate = params.getFromDate() != null ? params.getFromDate().toString() : null;
-    String untilDate = params.getUntilDate() != null ? params.getUntilDate().toString() : null;
-    String userId = params.getUserId() != null ? params.getUserId().toString() : null;
+        String category = params.getCategory() != null ? params.getCategory().name() : null;
+        String minPrice = params.getMinPrice() != null ? params.getMinPrice().toString() : null;
+        String maxPrice = params.getMaxPrice() != null ? params.getMaxPrice().toString() : null;
+        String fromDate = params.getFromDate() != null ? params.getFromDate().toString() : null;
+        String untilDate = params.getUntilDate() != null ? params.getUntilDate().toString() : null;
+        String userId = params.getUserId() != null ? params.getUserId().toString() : null;
 
-    int offset = (int) customPageable.toPageRequest().getOffset();
-    int limit = customPageable.toPageRequest().getPageSize();
+        int offset = (int) customPageable.toPageRequest().getOffset();
+        int limit = customPageable.toPageRequest().getPageSize();
 
-    List<Event> events = eventRepository.findFilteredEvents(
-            category,
-            params.getFilter(),
-            minPrice,
-            maxPrice,
-            fromDate,
-            untilDate,
-            params.getLocation(),
-            userId,
-            offset,
-            limit
-    );
+        List<Event> events = eventRepository.findFilteredEvents(
+                category,
+                params.getFilter(),
+                minPrice,
+                maxPrice,
+                fromDate,
+                untilDate,
+                params.getLocation(),
+                userId,
+                offset,
+                limit
+        );
 
-    long totalCount = countFilteredEvents(params);
+        long totalCount = countFilteredEvents(params);
 
-    return new PageImpl<>(events.stream().map(this::mapEventToSummaryResponse).collect(Collectors.toList()),
-            customPageable.toPageRequest(), totalCount);
-}
+        return new PageImpl<>(events.stream().map(this::mapEventToSummaryResponse).collect(Collectors.toList()),
+                customPageable.toPageRequest(), totalCount);
+    }
 
     private long countFilteredEvents(GetAllEventsParams params) {
         String category = params.getCategory() != null ? params.getCategory().name() : null;
@@ -261,6 +257,13 @@ public Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params) {
         }
         throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
     }
+    private Organizer mapUserToOrganizer(User user) {
+        Organizer organizer = new Organizer();
+        organizer.setId(user.getId());
+        organizer.setName(user.getName());
+        // Set other fields as needed
+        return organizer;
+    }
     private EventDetailsResponse mapEventToDetailsResponse(Event event) {
         EventDetailsResponse response = new EventDetailsResponse();
         response.setId(event.getId());  // Include the id
@@ -277,6 +280,8 @@ public Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params) {
         response.setFree(event.isFree());
         response.setAvailableSeats(event.getAvailableSeats());
         response.setEventUrl(event.getEventUrl());
+        response.setOrganizerName(mapUserToOrganizer(event.getOrganizer()));
+
         return response;
     }
 
@@ -290,6 +295,12 @@ public Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params) {
         response.setLocation(event.getLocation());
         response.setPrice(event.getPrice());
         response.setFree(event.isFree());
+        if (event.getOrganizer() != null) {
+            Organizer organizer = new Organizer();
+            organizer.setId(event.getOrganizer().getId());
+            organizer.setName(event.getOrganizer().getName()); // Adjust based on User entity
+            response.setOrganizer(organizer);
+        }
         return response;
     }
 

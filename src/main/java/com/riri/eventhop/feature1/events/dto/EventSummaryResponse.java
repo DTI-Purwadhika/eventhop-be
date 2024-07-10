@@ -19,4 +19,6 @@ public class EventSummaryResponse implements Serializable{
     private String location;
     private BigDecimal price;
     private boolean isFree;
+    private Organizer organizer;
+
 }

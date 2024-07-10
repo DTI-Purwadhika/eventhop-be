@@ -27,6 +27,10 @@ public class EventDetailsResponse implements Serializable{
     private boolean isFree;
     private Integer availableSeats;
     private String eventUrl;
+    private Long organizerId;
+    private Organizer organizerName;
+
+
 
 //    private Instant createdAt;
 //    private Instant updatedAt;

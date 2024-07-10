@@ -7,7 +7,6 @@ import com.riri.eventhop.feature1.events.dto.GetAllEventsParams;
 import com.riri.eventhop.feature1.events.entity.EventCategory;
 import com.riri.eventhop.feature1.events.service.EventService;
 import com.riri.eventhop.response.Response;
-import com.riri.eventhop.util.CustomPageable;
 import com.riri.eventhop.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.Instant;
 
 @RestController
