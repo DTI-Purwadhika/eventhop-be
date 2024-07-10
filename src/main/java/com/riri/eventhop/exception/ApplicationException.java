@@ -10,7 +10,6 @@ import java.util.List;
 
 
 @EqualsAndHashCode(callSuper = true)
-@Setter
 @Data
 public class ApplicationException extends RuntimeException  {
 
