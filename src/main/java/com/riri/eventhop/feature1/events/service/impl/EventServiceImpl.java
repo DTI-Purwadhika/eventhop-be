@@ -95,7 +95,7 @@ public class EventServiceImpl implements EventService {
 //        return mapEventPageToSummaryResponsePage(eventsPage);
 //    }
 
-    @Cacheable(value = "filteredEvents", key = "#params.toString()", unless = "#result.isEmpty()")
+    @Cacheable(value = "filteredEvents", key = "#params.toString()", unless = "#result.isEmpty()", cacheManager = "cacheManager")
     @Override
     public Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params) {
         CustomPageable customPageable = params.getCustomPageable();
@@ -226,7 +226,7 @@ public class EventServiceImpl implements EventService {
         return mapEventToDetailsResponse(savedEvent);
     }
 
-    @CacheEvict(value = {"upcomingEvents", "upcomingEventsByCategory", "upcomingEventsByLocation", "upcomingEventsSorted", "upcomingEventsSearch"}, allEntries = true)
+    @CacheEvict(value = "filteredEvents", allEntries = true)
     @Override
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
