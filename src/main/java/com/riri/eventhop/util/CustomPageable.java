@@ -10,10 +10,10 @@ import org.springframework.data.domain.Sort;
 public class CustomPageable {
     private int page;
     private int limit;
-    private Sort.Direction sortDirection;
-    private String sortBy;
+    private Sort.Direction order;
+    private String sort;
 
     public PageRequest toPageRequest() {
-        return PageRequest.of(page - 1, limit, Sort.by(sortDirection, sortBy));
+        return PageRequest.of(page - 1, limit, Sort.by(order, sort));
     }
 }
