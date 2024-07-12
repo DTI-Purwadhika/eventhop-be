@@ -2,10 +2,12 @@
 
     import com.riri.eventhop.config.RsaKeyConfigProperties;
     import io.jsonwebtoken.*;
+    import io.jsonwebtoken.security.Keys;
     import org.springframework.beans.factory.annotation.Value;
     import org.springframework.stereotype.Component;
     import com.riri.eventhop.feature2.users.entity.User;
 
+    import javax.crypto.SecretKey;
     import java.util.Date;
     import java.util.stream.Collectors;
 
@@ -16,15 +18,17 @@
 
         @Value("${jwt.refreshExpirationInMs}")
         private Long refreshExpirationInMs;
-        private final RsaKeyConfigProperties rsaKeyConfigProperties;
+//        private final RsaKeyConfigProperties rsaKeyConfigProperties;
+        @Value("${JWT_SECRET}")
+        private String jwtSecret;
 
-        public JwtTokenProvider(RsaKeyConfigProperties rsaKeyConfigProperties) {
-            this.rsaKeyConfigProperties = rsaKeyConfigProperties;
+        private SecretKey getSigningKey() {
+            return Keys.hmacShaKeyFor(jwtSecret.getBytes());
         }
 
-    //    private SecretKey getSigningKey() {
-    //        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
-    //    }
+//        public JwtTokenProvider(RsaKeyConfigProperties rsaKeyConfigProperties) {
+//            this.rsaKeyConfigProperties = rsaKeyConfigProperties;
+//        }
 
         public String generateToken(User user) {
             Date now = new Date();
@@ -43,7 +47,7 @@
                     .claim("user_role", user.getRoles().stream().map(Enum::name).collect(Collectors.toList()))
                     .issuedAt(now)
                     .expiration(expiryDate)
-                    .signWith(rsaKeyConfigProperties.privateKey())
+                    .signWith(getSigningKey())
                     .compact();
         }
 
@@ -55,7 +59,7 @@
                     .subject(Long.toString(user.getId()))
                     .issuedAt(now)
                     .expiration(expiryDate)
-                    .signWith(rsaKeyConfigProperties.privateKey())
+                    .signWith(getSigningKey())
                     .compact();
         }
         // Add methods for token validation if needed

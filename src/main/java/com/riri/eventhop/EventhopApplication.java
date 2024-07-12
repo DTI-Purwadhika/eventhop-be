@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableCaching
-@EnableConfigurationProperties(RsaKeyConfigProperties.class)
+//@EnableConfigurationProperties(RsaKeyConfigProperties.class)
 @ComponentScan(basePackages = {"com.riri.eventhop"})
 @Log
 public class EventhopApplication {
