@@ -1,5 +1,6 @@
 package com.riri.eventhop.feature1.events.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.riri.eventhop.feature1.promotions.Promotion;
 import com.riri.eventhop.feature1.reviews.Review;
 //import com.riri.eventhop.feature1.tickets.Ticket;
@@ -97,6 +98,7 @@ public class Event {
 //    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //    private List<Transaction> transactions;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
     private List<Promotion> promotions;
 
