@@ -20,6 +20,6 @@ public class GetAllEventsParams {
     private Long userId;
     private Boolean isFree;
     private Long organizerId;
-    private String organizerName;
+    private String organizer;
     private CustomPageable customPageable; // Use CustomPageable from PaginationUtil
 }

@@ -1,5 +1,6 @@
 package com.riri.eventhop.feature1.events.service.impl;
 
+import com.riri.eventhop.exception.ResourceNotFoundException;
 import com.riri.eventhop.feature1.events.dto.*;
 import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.repository.EventRepository;
@@ -201,25 +202,29 @@ public class EventServiceImpl implements EventService {
     public EventDetailsResponse updateEvent(Long id, EventDetailsRequest eventDetailsRequest) {
         String currentUserEmail = getCurrentUserEmail();
         Event existingEvent = eventRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "Event not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id " + id));
         if (existingEvent.isDeleted()) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "Cannot update a deleted event");
         }
-        if (!existingEvent.getOrganizer().getEmail().equals(currentUserEmail)) {
-            throw new ApplicationException(HttpStatus.FORBIDDEN, "You are not the organizer of this event");
+
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!existingEvent.getOrganizer().getEmail().equals(currentUserEmail) && !currentUser.getRoles().contains(UserRole.ORGANIZER)) {
+            throw new ApplicationException(HttpStatus.FORBIDDEN, "You are not authorized to update this event");
         }
 
         // Check if the image URL has changed
-        String oldImageUrl = existingEvent.getImageUrl();
-        String newImageUrl = eventDetailsRequest.getImageUrl();
-        if (newImageUrl != null && !newImageUrl.equals(oldImageUrl)) {
-            if (oldImageUrl != null) {
-                // Delete the old image
-                imageStorageService.deleteImage(oldImageUrl);
-            }
-            // Update the image URL
-            existingEvent.setImageUrl(newImageUrl);
-        }
+//        String oldImageUrl = existingEvent.getImageUrl();
+//        String newImageUrl = eventDetailsRequest.getImageUrl();
+//        if (newImageUrl != null && !newImageUrl.equals(oldImageUrl)) {
+//            if (oldImageUrl != null) {
+//                // Delete the old image
+//                imageStorageService.deleteImage(oldImageUrl);
+//            }
+//            // Update the image URL
+//            existingEvent.setImageUrl(newImageUrl);
+//        }
 
         mapEventDetailsRequestToEvent(eventDetailsRequest, existingEvent);
         existingEvent.setUpdatedAt(Instant.now());
@@ -235,15 +240,19 @@ public class EventServiceImpl implements EventService {
     public void deleteEvent(Long id) {
         String currentUserEmail = getCurrentUserEmail();
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "Event not found with id " + id));
-        if (!event.getOrganizer().getEmail().equals(currentUserEmail)) {
-            throw new ApplicationException(HttpStatus.FORBIDDEN, "You are not the organizer of this event");
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id " + id));
+
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!event.getOrganizer().getEmail().equals(currentUserEmail) && !currentUser.getRoles().contains(UserRole.ORGANIZER)) {
+            throw new ApplicationException(HttpStatus.FORBIDDEN, "You are not authorized to delete this event");
         }
         // Delete the associated image if it exists
-        String imageUrl = event.getImageUrl();
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            imageStorageService.deleteImage(imageUrl);
-        }
+//        String imageUrl = event.getImageUrl();
+//        if (imageUrl != null && !imageUrl.isEmpty()) {
+//            imageStorageService.deleteImage(imageUrl);
+//        }
         event.softDelete();
         event.setUpdatedAt(Instant.now());
         eventRepository.save(event);
@@ -282,7 +291,7 @@ public class EventServiceImpl implements EventService {
         response.setIsFree(event.getIsFree());
         response.setAvailableSeats(event.getAvailableSeats());
         response.setEventUrl(event.getEventUrl());
-        response.setOrganizerName(mapUserToOrganizer(event.getOrganizer()));
+        response.setOrganizer(mapUserToOrganizer(event.getOrganizer()));
 
         return response;
     }

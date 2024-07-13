@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService {
             User referrer = userRepository.findByReferralCode(request.getReferralCode())
                     .orElseThrow(() -> new ApplicationException("Invalid referral code"));
 
+            user.setReferrer(referrer);
             addPointsToReferrer(referrer);
             addDiscountToNewUser(user);
         }
@@ -138,5 +139,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public User save(User user) {
         return userRepository.save(user);
+    }
+    @Override
+    public List<User> findReferredUsers(User referrer) {
+        return userRepository.findByReferrer(referrer);
     }
 }

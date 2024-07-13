@@ -59,15 +59,22 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String referralCode;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Enumerated(EnumType.STRING)
-    private Set<UserRole> roles = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "referrer_id")
+    private User referrer;
+
+    @OneToMany(mappedBy = "referrer")
+    private List<User> referredUsers = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Point> points = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Discount> discounts = new ArrayList<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<UserRole> roles = new HashSet<>();
 
     @CreatedDate
     private Instant createdAt;
@@ -107,7 +114,6 @@ public class User implements UserDetails {
     }
 
     // UserDetails interface methods
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()

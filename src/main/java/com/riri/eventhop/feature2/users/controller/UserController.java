@@ -1,6 +1,7 @@
 package com.riri.eventhop.feature2.users.controller;
 
 
+import com.riri.eventhop.feature2.users.dto.ReferredUserDTO;
 import com.riri.eventhop.feature2.users.entity.Discount;
 import com.riri.eventhop.feature2.users.service.UserService;
 import com.riri.eventhop.feature2.users.dto.DiscountResponse;
@@ -17,6 +18,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -88,6 +92,25 @@ public class UserController {
         );
 
         return Response.success("Discount retrieved successfully", discountResponse);
+    }
+    @GetMapping("/referred-users")
+    public ResponseEntity<Response<List<ReferredUserDTO>>> getReferredUsers(@AuthenticationPrincipal Jwt jwt) {
+        log.info("Received request for referred users. JWT subject: {}", jwt.getSubject());
+
+        String email = jwt.getSubject();
+        User user = userService.findByEmail(email);
+
+        if (user == null) {
+            log.warn("User not found for email: {}", email);
+            return Response.failed(HttpStatus.NOT_FOUND.value(), "User not found");
+        }
+
+        List<User> referredUsers = userService.findReferredUsers(user);
+        List<ReferredUserDTO> referredUserDTOs = referredUsers.stream()
+                .map(ReferredUserDTO::fromUser)
+                .collect(Collectors.toList());
+
+        return Response.success("Referred users retrieved successfully", referredUserDTOs);
     }
 //    @PostMapping("/forgot-password")
 //    public ResponseEntity<?> forgotPassword(@RequestParam String email) {

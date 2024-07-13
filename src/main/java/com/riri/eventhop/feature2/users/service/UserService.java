@@ -5,6 +5,8 @@ import com.riri.eventhop.feature2.users.dto.RegisterRequest;
 import com.riri.eventhop.feature2.users.entity.Discount;
 import com.riri.eventhop.feature2.users.entity.User;
 
+import java.util.List;
+
 public interface UserService {
     User registerUser(RegisterRequest request);
     Integer calculateAvailablePoints(User user);
@@ -13,4 +15,6 @@ public interface UserService {
     void redeemPoints(User user, int pointsToRedeem);
     User findByEmail(String email);
     User save(User user);
+    List<User> findReferredUsers(User referrer);
+
 }
