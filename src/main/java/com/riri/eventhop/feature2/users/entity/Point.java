@@ -19,5 +19,12 @@ public class Point {
 
     private Integer points;
 
+    private LocalDateTime createdAt;
+
     private LocalDateTime expiryDate;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 }

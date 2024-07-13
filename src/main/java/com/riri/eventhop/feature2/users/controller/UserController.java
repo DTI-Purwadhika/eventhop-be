@@ -1,12 +1,10 @@
 package com.riri.eventhop.feature2.users.controller;
 
-
-import com.riri.eventhop.feature2.users.dto.ReferredUserDTO;
+import com.riri.eventhop.feature2.users.entity.Point;
+import com.riri.eventhop.feature2.users.dto.*;
+import com.riri.eventhop.feature2.users.dto.ReferredUser;
 import com.riri.eventhop.feature2.users.entity.Discount;
 import com.riri.eventhop.feature2.users.service.UserService;
-import com.riri.eventhop.feature2.users.dto.DiscountResponse;
-import com.riri.eventhop.feature2.users.dto.PointResponse;
-import com.riri.eventhop.feature2.users.dto.UserInfoDTO;
 import com.riri.eventhop.feature2.users.entity.User;
 import com.riri.eventhop.response.Response;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +17,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,12 +57,18 @@ public class UserController {
 
         if (user == null) {
             log.warn("User not found for email: {}", email);
-            return Response.failed(HttpStatus.NOT_FOUND.value(),"User not found" );
+            return Response.failed(HttpStatus.NOT_FOUND.value(), "User not found");
         }
 
         Integer points = userService.calculateAvailablePoints(user);
+        LocalDateTime receivedDate = user.getPoints().stream()
+                .filter(p -> p.getExpiryDate().isAfter(LocalDateTime.now()))
+                .map(Point::getCreatedAt)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+
         log.info("Retrieved {} points for user {}", points, email);
-        PointResponse pointResponse = new PointResponse(points);
+        PointResponse pointResponse = new PointResponse(points, receivedDate);
         return Response.success("Points retrieved successfully", pointResponse);
     }
 
@@ -93,9 +98,9 @@ public class UserController {
 
         return Response.success("Discount retrieved successfully", discountResponse);
     }
-    @GetMapping("/referred-users")
-    public ResponseEntity<Response<List<ReferredUserDTO>>> getReferredUsers(@AuthenticationPrincipal Jwt jwt) {
-        log.info("Received request for referred users. JWT subject: {}", jwt.getSubject());
+    @GetMapping("/referral-code")
+    public ResponseEntity<Response<String>> getReferralCode(@AuthenticationPrincipal Jwt jwt) {
+        log.info("Received request for referral code. JWT subject: {}", jwt.getSubject());
 
         String email = jwt.getSubject();
         User user = userService.findByEmail(email);
@@ -105,13 +110,32 @@ public class UserController {
             return Response.failed(HttpStatus.NOT_FOUND.value(), "User not found");
         }
 
+        String referralCode = user.getReferralCode();
+        return Response.success("Referral code retrieved successfully", referralCode);
+    }
+    @GetMapping("/referral-info")
+    public ResponseEntity<Response<ReferralInfo>> getReferralInfo(@AuthenticationPrincipal Jwt jwt) {
+        log.info("Received request for referral info. JWT subject: {}", jwt.getSubject());
+
+        String email = jwt.getSubject();
+        User user = userService.findByEmail(email);
+
+        if (user == null) {
+            log.warn("User not found for email: {}", email);
+            return Response.failed(HttpStatus.NOT_FOUND.value(), "User not found");
+        }
+
+        String referralCode = user.getReferralCode();
         List<User> referredUsers = userService.findReferredUsers(user);
-        List<ReferredUserDTO> referredUserDTOs = referredUsers.stream()
-                .map(ReferredUserDTO::fromUser)
+        List<ReferredUser> referredUser = referredUsers.stream()
+                .map(ReferredUser::fromUser)
                 .collect(Collectors.toList());
 
-        return Response.success("Referred users retrieved successfully", referredUserDTOs);
+        ReferralInfo referralInfo = new ReferralInfo(referralCode, referredUser);
+
+        return Response.success("Referral info retrieved successfully", referralInfo);
     }
+
 //    @PostMapping("/forgot-password")
 //    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
 //        User user = userRepository.findByEmail(email)
