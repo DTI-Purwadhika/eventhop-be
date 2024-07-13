@@ -1,5 +1,10 @@
 package com.riri.eventhop.feature1.events.entity;
 
+import com.riri.eventhop.feature1.promotions.Promotion;
+import com.riri.eventhop.feature1.reviews.Review;
+//import com.riri.eventhop.feature1.tickets.Ticket;
+import com.riri.eventhop.feature1.tickets.TicketTier;
+//import com.riri.eventhop.feature1.transactions.Transaction;
 import com.riri.eventhop.feature2.users.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -10,6 +15,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -59,7 +66,7 @@ public class Event {
     private BigDecimal price;
 
     @NotNull(message = "Free status must be provided")
-    private boolean isFree;
+    private Boolean isFree;
 
     @NotNull(message = "Available seats must be provided")
     @Min(value = 0, message = "Available seats must be greater than or equal to {value}")
@@ -78,18 +85,20 @@ public class Event {
     @JoinColumn(name = "organizer_id")
     private User organizer;
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TicketTier> ticketTiers = new ArrayList<>();
 
 //    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //    private List<Ticket> tickets;
-//
-//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//    private List<Review> reviews;
-//
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    private List<Review> reviews;
+
 //    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //    private List<Transaction> transactions;
-//
-//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//    private List<Promotion> promotions;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    private List<Promotion> promotions;
 
 
 

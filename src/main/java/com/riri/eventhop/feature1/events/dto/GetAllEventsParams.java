@@ -18,6 +18,7 @@ public class GetAllEventsParams {
     private Instant untilDate;
     private String location;
     private Long userId;
+    private Boolean isFree;
     private Long organizerId;
     private String organizerName;
     private CustomPageable customPageable; // Use CustomPageable from PaginationUtil

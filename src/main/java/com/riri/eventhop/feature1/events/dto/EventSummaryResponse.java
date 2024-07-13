@@ -18,7 +18,7 @@ public class EventSummaryResponse implements Serializable{
     private Instant startTime;
     private String location;
     private BigDecimal price;
-    private boolean isFree;
+    private Boolean isFree;
     private Organizer organizer;
 
 }

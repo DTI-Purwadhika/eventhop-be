@@ -106,7 +106,7 @@ public class EventServiceImpl implements EventService {
         String fromDate = params.getFromDate() != null ? params.getFromDate().toString() : null;
         String untilDate = params.getUntilDate() != null ? params.getUntilDate().toString() : null;
         String userId = params.getUserId() != null ? params.getUserId().toString() : null;
-
+        Boolean isFree = params.getIsFree();
         int offset = (int) customPageable.toPageRequest().getOffset();
         int limit = customPageable.toPageRequest().getPageSize();
 
@@ -119,6 +119,7 @@ public class EventServiceImpl implements EventService {
                 untilDate,
                 params.getLocation(),
                 userId,
+                isFree,
                 offset,
                 limit
         );
@@ -136,7 +137,7 @@ public class EventServiceImpl implements EventService {
         String fromDate = params.getFromDate() != null ? params.getFromDate().toString() : null;
         String untilDate = params.getUntilDate() != null ? params.getUntilDate().toString() : null;
         String userId = params.getUserId() != null ? params.getUserId().toString() : null;
-
+        Boolean isFree = params.getIsFree();
         return eventRepository.countFilteredEvents(
                 category,
                 params.getFilter(),
@@ -145,7 +146,8 @@ public class EventServiceImpl implements EventService {
                 fromDate,
                 untilDate,
                 params.getLocation(),
-                userId
+                userId,
+                isFree
         );
     }
 
@@ -277,7 +279,7 @@ public class EventServiceImpl implements EventService {
         response.setStartTime(event.getStartTime());
         response.setEndTime(event.getEndTime());
         response.setPrice(event.getPrice());
-        response.setFree(event.isFree());
+        response.setIsFree(event.getIsFree());
         response.setAvailableSeats(event.getAvailableSeats());
         response.setEventUrl(event.getEventUrl());
         response.setOrganizerName(mapUserToOrganizer(event.getOrganizer()));
@@ -294,7 +296,7 @@ public class EventServiceImpl implements EventService {
         response.setStartTime(event.getStartTime());
         response.setLocation(event.getLocation());
         response.setPrice(event.getPrice());
-        response.setFree(event.isFree());
+        response.setIsFree(event.getIsFree());
         if (event.getOrganizer() != null) {
             Organizer organizer = new Organizer();
             organizer.setId(event.getOrganizer().getId());
@@ -325,6 +327,7 @@ public class EventServiceImpl implements EventService {
         event.setStartTime(eventDetailsRequest.getStartTime());
         event.setEndTime(eventDetailsRequest.getEndTime());
         event.setPrice(eventDetailsRequest.getPrice());
+        event.setIsFree(eventDetailsRequest.getIsFree());
         event.setAvailableSeats(eventDetailsRequest.getAvailableSeats());
         event.setEventUrl(eventDetailsRequest.getEventUrl());
     }

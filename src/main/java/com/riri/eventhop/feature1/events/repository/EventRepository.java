@@ -33,6 +33,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         "AND (:untilDate IS NULL OR e.end_time <= CAST(:untilDate AS TIMESTAMP)) " +
         "AND (:location IS NULL OR e.locations = :location) " +
         "AND (:userId IS NULL OR e.organizer_id = CAST(:userId AS BIGINT)) " +
+        "AND (:isFree IS NULL OR e.is_free = :isFree) " +
         "ORDER BY e.id " +
         "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY",
         nativeQuery = true)
@@ -45,6 +46,7 @@ List<Event> findFilteredEvents(
         @Param("untilDate") String untilDate,
         @Param("location") String location,
         @Param("userId") String userId,
+        @Param("isFree") Boolean isFree,
         @Param("offset") int offset,
         @Param("limit") int limit);
     @Query(value = "SELECT COUNT(*) FROM events e WHERE " +
@@ -56,7 +58,8 @@ List<Event> findFilteredEvents(
             "AND (:fromDate IS NULL OR e.start_time >= CAST(:fromDate AS TIMESTAMP)) " +
             "AND (:untilDate IS NULL OR e.end_time <= CAST(:untilDate AS TIMESTAMP)) " +
             "AND (:location IS NULL OR e.locations = :location) " +
-            "AND (:userId IS NULL OR e.organizer_id = CAST(:userId AS BIGINT))",
+            "AND (:userId IS NULL OR e.organizer_id = CAST(:userId AS BIGINT))" +
+            "AND (:isFree IS NULL OR e.is_free = :isFree)",
             nativeQuery = true)
     long countFilteredEvents(
             @Param("category") String category,
@@ -66,7 +69,7 @@ List<Event> findFilteredEvents(
             @Param("fromDate") String fromDate,
             @Param("untilDate") String untilDate,
             @Param("location") String location,
-            @Param("userId") String userId);
-
+            @Param("userId") String userId,
+            @Param("isFree") Boolean isFree);
     Optional<Event> findByIdAndDeletedAtIsNull(Long id);
 }

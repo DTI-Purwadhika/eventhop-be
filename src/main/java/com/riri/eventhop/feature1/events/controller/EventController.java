@@ -94,6 +94,7 @@ public class EventController {
             @RequestParam(required = false) Instant untilDate,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Boolean isFree,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer limit,
             @RequestParam(defaultValue = "ASC") String sortDirection,
@@ -115,6 +116,7 @@ public class EventController {
         params.setUntilDate(untilDate);
         params.setLocation(location);
         params.setUserId(userId);
+        params.setIsFree(isFree);
         params.setCustomPageable(PaginationUtil.createPageable(page, limit, sortDirection, sortBy));
 
         Page<EventSummaryResponse> events = eventService.getFilteredEvents(params);

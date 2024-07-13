@@ -52,7 +52,7 @@ public class EventDetailsRequest {
     private BigDecimal price;
 
     @NotNull(message = "Free status must be provided")
-    private boolean isFree;
+    private Boolean isFree;
 
     @NotNull(message = "Available seats must be provided")
     @Min(value = 0, message = "Available seats must be greater than or equal to {value}")
