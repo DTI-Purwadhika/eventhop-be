@@ -62,6 +62,7 @@ public class UserServiceImpl implements UserService {
         point.setUser(referrer);
         point.setPoints(10000);
         point.setExpiryDate(LocalDateTime.now().plusMonths(3));
+        point.setDescription("Referral bonus");
         referrer.getPoints().add(point);
         userRepository.save(referrer);
     }

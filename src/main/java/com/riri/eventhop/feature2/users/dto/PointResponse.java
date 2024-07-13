@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class PointResponse {
+    private String description;
     private int availablePoints;
     private LocalDateTime receivedDate;
 }

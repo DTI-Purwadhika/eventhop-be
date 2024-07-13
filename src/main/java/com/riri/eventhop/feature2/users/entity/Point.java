@@ -17,6 +17,8 @@ public class Point {
     @JoinColumn(name = "user_id")
     private User user;
 
+    private String description;
+
     private Integer points;
 
     private LocalDateTime createdAt;

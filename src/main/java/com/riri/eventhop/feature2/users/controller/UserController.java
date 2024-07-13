@@ -18,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,14 +62,17 @@ public class UserController {
         }
 
         Integer points = userService.calculateAvailablePoints(user);
-        LocalDateTime receivedDate = user.getPoints().stream()
+
+        Point latestPoint = user.getPoints().stream()
                 .filter(p -> p.getExpiryDate().isAfter(LocalDateTime.now()))
-                .map(Point::getCreatedAt)
-                .min(LocalDateTime::compareTo)
+                .max(Comparator.comparing(Point::getCreatedAt))
                 .orElse(null);
 
+        LocalDateTime receivedDate = latestPoint != null ? latestPoint.getCreatedAt() : null;
+        String description = latestPoint != null ? latestPoint.getDescription() : null;
+
         log.info("Retrieved {} points for user {}", points, email);
-        PointResponse pointResponse = new PointResponse(points, receivedDate);
+        PointResponse pointResponse = new PointResponse(description, points, receivedDate);
         return Response.success("Points retrieved successfully", pointResponse);
     }
 
