@@ -2,23 +2,23 @@ package com.riri.eventhop.feature2.users.dto;
 
 import com.riri.eventhop.feature2.users.entity.User;
 import com.riri.eventhop.feature2.users.entity.UserRole;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class UserInfoDTO {
-    private final Long id;
-    private final String email;
-    private final String name;
-    private final Set<UserRole> roles;
-    private final String referralCode;
-    private final String bio;
-    private final String location;
-    private final String avatarUrl;
-    private final String website;
+    private Long id;
+    private String email;
+    private String name;
+    private Set<UserRole> roles;
+    private String referralCode;
+    private String bio;
+    private String location;
+    private String avatarUrl;
 
     public static UserInfoDTO fromUser(User user) {
         if (user == null) {
@@ -32,8 +32,7 @@ public class UserInfoDTO {
                 user.getReferralCode(),
                 user.getBio(),
                 user.getLocation(),
-                user.getAvatarUrl(),
-                user.getWebsite()
+                user.getAvatarUrl()
         );
     }
 }

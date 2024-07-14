@@ -53,9 +53,6 @@ public class User implements UserDetails {
     private String location;
     private String avatarUrl;
 
-    @URL
-    private String website;
-
     @Column(unique = true)
     private String referralCode;
 

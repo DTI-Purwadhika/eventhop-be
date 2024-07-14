@@ -43,7 +43,6 @@
                     .claim("bio", user.getBio())
                     .claim("location", user.getLocation())
                     .claim("avatarUrl", user.getAvatarUrl())
-                    .claim("website", user.getWebsite())
                     .claim("user_role", user.getRoles().stream().map(Enum::name).collect(Collectors.toList()))
                     .issuedAt(now)
                     .expiration(expiryDate)
