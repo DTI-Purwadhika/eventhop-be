@@ -30,7 +30,6 @@ public class PromotionServiceImpl implements PromotionService {
     private final PromotionRepository promotionRepository;
     private final EventRepository eventRepository;
 
-    // Create
     @Override
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -53,9 +52,12 @@ public class PromotionServiceImpl implements PromotionService {
         return mapToResponse(savedPromotion);
     }
 
-
-
-    // Read
+    @Override
+    @PreAuthorize("hasRole('ORGANIZER')")
+    public Page<PromotionResponse> getAllPromotionsByOrganizer(Long organizerId, CustomPageable pageable) {
+        Page<Promotion> promotions = promotionRepository.findAllByOrganizerId(organizerId, pageable.toPageRequest());
+        return promotions.map(this::mapToResponse);
+    }
     @Override
     public PromotionResponse getPromotionById(Long id) {
         Promotion promotion = promotionRepository.findById(id)
@@ -83,7 +85,6 @@ public class PromotionServiceImpl implements PromotionService {
         return promotions.map(this::mapToResponse);
     }
 
-    // Update
     @Override
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -103,7 +104,6 @@ public class PromotionServiceImpl implements PromotionService {
         return mapToResponse(updatedPromotion);
     }
 
-    // Delete
     @Override
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
@@ -136,6 +136,7 @@ public class PromotionServiceImpl implements PromotionService {
         promotion.setUsedCount(promotion.getUsedCount() + 1);
         promotionRepository.save(promotion);
     }
+
     private String getCurrentUserEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -146,6 +147,7 @@ public class PromotionServiceImpl implements PromotionService {
         }
         throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
     }
+
     private PromotionResponse mapToResponse(Promotion promotion) {
         PromotionResponse dto = new PromotionResponse();
         dto.setId(promotion.getId());

@@ -20,5 +20,6 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     Page<Promotion> findActivePromotionsForEvent(Long eventId, LocalDateTime now, Pageable pageable);
 
     Optional<Promotion> findByCode(String promotionCode);
-
+    @Query("SELECT p FROM Promotion p JOIN p.event e WHERE e.organizer.id = :organizerId")
+    Page<Promotion> findAllByOrganizerId(@Param("organizerId") Long organizerId, Pageable pageable);
 }

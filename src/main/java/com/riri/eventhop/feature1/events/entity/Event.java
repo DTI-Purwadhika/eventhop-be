@@ -86,22 +86,22 @@ public class Event {
     @JoinColumn(name = "organizer_id")
     private User organizer;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Promotion> promotions;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
+
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketTier> ticketTiers = new ArrayList<>();
+
 
 //    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //    private List<Ticket> tickets;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    private List<Review> reviews;
-
 //    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //    private List<Transaction> transactions;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    private List<Promotion> promotions;
-
 
 
     public boolean isDeleted() {

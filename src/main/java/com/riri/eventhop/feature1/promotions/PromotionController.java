@@ -18,21 +18,49 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/events/{eventId}/promotions")
+@RequestMapping("/api/v1/promotions")
 public class PromotionController {
 
     private final PromotionService promotionService;
-    @PostMapping
-    public ResponseEntity<Response<PromotionResponse>> createPromotion(@RequestBody PromotionRequest promotionDTO) {
+    @PostMapping("/events/{eventId}")
+    public ResponseEntity<Response<PromotionResponse>> createPromotion(
+            @PathVariable Long eventId,
+            @RequestBody PromotionRequest promotionDTO) {
         try {
-            PromotionResponse createdPromotion = promotionService.createPromotion(promotionDTO, null);
+            PromotionResponse createdPromotion = promotionService.createPromotion(promotionDTO, eventId);
             return Response.success("Promotion created successfully", createdPromotion);
         } catch (IllegalArgumentException e) {
             return Response.failed(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
+    @GetMapping("/organizers/{organizerId}")
+    public ResponseEntity<Response<PageResponse<PromotionResponse>>> getAllPromotionsByOrganizer(
+            @PathVariable Long organizerId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) String order,
+            @RequestParam(required = false) String sort
+    ) {
+        CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
+        Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsByOrganizer(organizerId, pageable);
+        PageResponse<PromotionResponse> pageResponse = convertToPageResponse(promotionsPage);
+        return Response.success("Promotions retrieved successfully", pageResponse);
+    }
+    @GetMapping("/events/{eventId}")
+    public ResponseEntity<Response<PageResponse<PromotionResponse>>> getAllPromotionsForEvent(
+            @PathVariable Long eventId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) String order,
+            @RequestParam(required = false) String sort
+    ) {
+        CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
+        Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsForEvent(eventId, pageable);
+        PageResponse<PromotionResponse> pageResponse = convertToPageResponse(promotionsPage);
+        return Response.success("Promotions retrieved successfully", pageResponse);
+    }
 
-    @GetMapping("/{id}")
+    @GetMapping("/events/{eventId}/{id}")
     public ResponseEntity<Response<PromotionResponse>> getPromotionById(@PathVariable Long id) {
         PromotionResponse promotion = promotionService.getPromotionById(id);
         if (!promotionService.isPromotionActive(id)) {
@@ -40,7 +68,7 @@ public class PromotionController {
         }
         return Response.success("Promotion retrieved successfully", promotion);
     }
-    @PostMapping("/{id}/use")
+    @PostMapping("/events/{eventId}/{id}/use")
     public ResponseEntity<Response<Void>> usePromotion(@PathVariable Long id) {
         try {
             promotionService.incrementUsedCount(id);
@@ -54,7 +82,7 @@ public class PromotionController {
         PromotionResponse promotion = promotionService.getPromotionByCode(code);
         return Response.success("Promotion retrieved successfully", promotion);
     }
-    @GetMapping("/active")
+    @GetMapping("/events/{eventId}/active")
     public ResponseEntity<Response<PageResponse<PromotionResponse>>> getActivePromotionsForEvent(
             @PathVariable Long eventId,
             @RequestParam(required = false) Integer page,
@@ -68,26 +96,14 @@ public class PromotionController {
 
         return Response.success("Active promotions retrieved successfully", pageResponse);
     }
-    @GetMapping
-    public ResponseEntity<Response<PageResponse<PromotionResponse>>> getAllPromotionsForEvent(
-            @PathVariable Long eventId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer limit,
-            @RequestParam(required = false) String order,
-            @RequestParam(required = false) String sort
-    ) {
-        CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
-        Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsForEvent(eventId, pageable);
-        PageResponse<PromotionResponse> pageResponse = convertToPageResponse(promotionsPage);
-        return Response.success("Promotions retrieved successfully", pageResponse);
-    }
-    @PutMapping("/{id}")
+
+    @PutMapping("/events/{eventId}/{id}")
     public ResponseEntity<Response<PromotionResponse>> updatePromotion(@PathVariable Long id, @Valid @RequestBody PromotionRequest promotionDetails) {
         PromotionResponse updatedPromotion = promotionService.updatePromotion(id, promotionDetails);
         return Response.success("Promotion updated successfully", updatedPromotion);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/events/{eventId}/{id}")
     public ResponseEntity<Response<Void>> deletePromotion(@PathVariable Long id) {
         promotionService.deletePromotion(id);
         return Response.success("Promotion deleted successfully");
