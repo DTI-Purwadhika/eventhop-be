@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Table(name = "promotions")
 public class Promotion {
+    private static final BigDecimal MAX_PERCENTAGE = new BigDecimal(100);
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -64,13 +65,6 @@ public class Promotion {
         this.expireDate = expireDate;
         this.startDate = startDate;
     }
-    @AssertTrue(message = "For percentage promotions, amount must be between 0 and 100")
-    public boolean isValidAmount() {
-        if (type == PromotionType.PERCENTAGE) {
-            return amount.compareTo(BigDecimal.ZERO) > 0 && amount.compareTo(new BigDecimal("100")) <= 0;
-        } else if (type == PromotionType.FLAT || type == PromotionType.CASHBACK) {
-            return amount.compareTo(BigDecimal.ZERO) >= 0;
-        }
-        return true;
-    }
+
+
 }

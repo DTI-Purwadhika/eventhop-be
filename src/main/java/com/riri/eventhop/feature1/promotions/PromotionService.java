@@ -16,6 +16,6 @@ public interface PromotionService {
     Page<PromotionResponse> getActivePromotionsForEvent(Long eventId, CustomPageable pageable);
     PromotionResponse updatePromotion(Long id, PromotionRequest promotionRequest);
     void deletePromotion(Long id);
-    boolean isPromotionValid(Promotion promotion);
+    boolean isPromotionActive(Long promotionId);
     void incrementUsedCount(Long promotionId);
 }

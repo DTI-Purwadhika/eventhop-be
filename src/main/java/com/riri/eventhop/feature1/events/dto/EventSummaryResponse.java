@@ -1,6 +1,7 @@
 package com.riri.eventhop.feature1.events.dto;
 
 import com.riri.eventhop.feature1.events.entity.EventCategory;
+import com.riri.eventhop.feature2.users.entity.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,6 +20,6 @@ public class EventSummaryResponse implements Serializable{
     private String location;
     private BigDecimal price;
     private Boolean isFree;
-    private Organizer organizer;
+    private String organizer;
 
 }

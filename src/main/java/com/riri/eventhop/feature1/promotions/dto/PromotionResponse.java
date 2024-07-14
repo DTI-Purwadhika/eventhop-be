@@ -1,6 +1,7 @@
 package com.riri.eventhop.feature1.promotions.dto;
 
 import com.riri.eventhop.feature1.promotions.PromotionType;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -16,7 +17,5 @@ public class PromotionResponse {
     private BigDecimal amount;
     private Integer quota;
     private LocalDateTime expireDate;
-    private String eventName; // Added field for event name
-
-    // Other fields can be added as needed for response
-}
+    private String eventName;
+    }

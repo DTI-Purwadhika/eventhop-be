@@ -268,13 +268,13 @@ public class EventServiceImpl implements EventService {
         }
         throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
     }
-    private Organizer mapUserToOrganizer(User user) {
-        Organizer organizer = new Organizer();
-        organizer.setId(user.getId());
-        organizer.setName(user.getName());
-        // Set other fields as needed
-        return organizer;
-    }
+//    private User mapUserToOrganizer(User user) {
+//        Organizer organizer = new Organizer();
+//        organizer.setId(user.getId());
+//        organizer.setName(user.getName());
+//        // Set other fields as needed
+//        return organizer;
+//    }
     private EventDetailsResponse mapEventToDetailsResponse(Event event) {
         EventDetailsResponse response = new EventDetailsResponse();
         response.setId(event.getId());  // Include the id
@@ -291,8 +291,7 @@ public class EventServiceImpl implements EventService {
         response.setIsFree(event.getIsFree());
         response.setAvailableSeats(event.getAvailableSeats());
         response.setEventUrl(event.getEventUrl());
-        response.setOrganizer(mapUserToOrganizer(event.getOrganizer()));
-
+        response.setOrganizer(event.getOrganizer().getName());
         return response;
     }
 
@@ -306,12 +305,7 @@ public class EventServiceImpl implements EventService {
         response.setLocation(event.getLocation());
         response.setPrice(event.getPrice());
         response.setIsFree(event.getIsFree());
-        if (event.getOrganizer() != null) {
-            Organizer organizer = new Organizer();
-            organizer.setId(event.getOrganizer().getId());
-            organizer.setName(event.getOrganizer().getName()); // Adjust based on User entity
-            response.setOrganizer(organizer);
-        }
+        response.setOrganizer(event.getOrganizer().getName());
         return response;
     }
 

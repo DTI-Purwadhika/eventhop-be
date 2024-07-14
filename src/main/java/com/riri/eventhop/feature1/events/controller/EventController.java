@@ -6,6 +6,7 @@ import com.riri.eventhop.feature1.events.dto.EventSummaryResponse;
 import com.riri.eventhop.feature1.events.dto.GetAllEventsParams;
 import com.riri.eventhop.feature1.events.entity.EventCategory;
 import com.riri.eventhop.feature1.events.service.EventService;
+import com.riri.eventhop.response.PageResponse;
 import com.riri.eventhop.response.Response;
 import com.riri.eventhop.util.PaginationUtil;
 import jakarta.validation.Valid;
@@ -84,31 +85,33 @@ public class EventController {
 //        Page<EventSummaryResponse> events = eventService.searchUpcomingEvents(keyword, pageable);
 //        return Response.success("Upcoming events search results retrieved successfully", events);
 //    }
-    @GetMapping
-    public ResponseEntity<Response<Page<EventSummaryResponse>>> getFilteredEvents(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String filter,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) Instant fromDate,
-            @RequestParam(required = false) Instant untilDate,
-            @RequestParam(required = false) String location,
-            @RequestParam(required = false) Long userId,
-            @RequestParam(required = false) Boolean isFree,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer limit,
-            @RequestParam(defaultValue = "ASC") String sortDirection,
-            @RequestParam(defaultValue = "id") String sortBy) {
-        EventCategory eventCategory = null;
-        if (category != null) {
-            try {
-                eventCategory = EventCategory.valueOf(category.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid event category: " + category);
-            }
+@GetMapping
+public ResponseEntity<Response<PageResponse<EventSummaryResponse>>> getFilteredEvents(
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String filter,
+        @RequestParam(required = false) BigDecimal minPrice,
+        @RequestParam(required = false) BigDecimal maxPrice,
+        @RequestParam(required = false) Instant fromDate,
+        @RequestParam(required = false) Instant untilDate,
+        @RequestParam(required = false) String location,
+        @RequestParam(required = false) Long userId,
+        @RequestParam(required = false) Boolean isFree,
+        @RequestParam(defaultValue = "1") Integer page,
+        @RequestParam(defaultValue = "20") Integer limit,
+        @RequestParam(defaultValue = "ASC") String sortDirection,
+        @RequestParam(defaultValue = "id") String sortBy) {
+
+    EventCategory eventCategory = null;
+    if (category != null) {
+        try {
+            eventCategory = EventCategory.valueOf(category.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid event category: " + category);
         }
-        GetAllEventsParams params = new GetAllEventsParams();
-        params.setCategory(category != null ? EventCategory.valueOf(category.toUpperCase()) : null);
+    }
+
+    GetAllEventsParams params = new GetAllEventsParams();
+        params.setCategory(eventCategory);
         params.setFilter(filter);
         params.setMinPrice(minPrice);
         params.setMaxPrice(maxPrice);
@@ -119,9 +122,20 @@ public class EventController {
         params.setIsFree(isFree);
         params.setCustomPageable(PaginationUtil.createPageable(page, limit, sortDirection, sortBy));
 
-        Page<EventSummaryResponse> events = eventService.getFilteredEvents(params);
-        return Response.success("Filtered events fetched successfully", events);
-    }
+    Page<EventSummaryResponse> eventsPage = eventService.getFilteredEvents(params);
+
+    PageResponse<EventSummaryResponse> pageResponse = new PageResponse<>(
+        eventsPage.getContent(),
+        eventsPage.getNumber(),
+        eventsPage.getSize(),
+        eventsPage.getTotalElements(),
+        eventsPage.getTotalPages(),
+        eventsPage.isFirst(),
+        eventsPage.isLast()
+    );
+
+    return Response.success("Filtered events fetched successfully", pageResponse);
+}
 
 
     @GetMapping("/{id}")
