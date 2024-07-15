@@ -1,14 +1,14 @@
 package com.riri.eventhop.feature1.events.dto;
 
 import com.riri.eventhop.feature1.events.entity.EventCategory;
+import com.riri.eventhop.feature1.tickets.dto.TicketTierResponse;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -28,7 +28,7 @@ public class EventDetailsResponse implements Serializable{
     private Integer availableSeats;
     private String eventUrl;
     private String organizer;
-
+    private List<TicketTierResponse> ticketTiers;
 
 
 //    private Instant createdAt;

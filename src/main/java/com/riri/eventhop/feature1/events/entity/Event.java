@@ -96,13 +96,18 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketTier> ticketTiers = new ArrayList<>();
 
-
-//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//    private List<Ticket> tickets;
-
 //    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
 //    private List<Transaction> transactions;
 
+    public void addTicketTier(TicketTier ticketTier) {
+        ticketTiers.add(ticketTier);
+        ticketTier.setEvent(this);
+    }
+
+    public void removeTicketTier(TicketTier ticketTier) {
+        ticketTiers.remove(ticketTier);
+        ticketTier.setEvent(null);
+    }
 
     public boolean isDeleted() {
         return deletedAt != null;

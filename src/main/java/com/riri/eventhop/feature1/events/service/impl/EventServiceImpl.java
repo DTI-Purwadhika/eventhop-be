@@ -7,6 +7,9 @@ import com.riri.eventhop.feature1.events.repository.EventRepository;
 import com.riri.eventhop.feature1.events.service.EventService;
 import com.riri.eventhop.exception.ApplicationException;
 import com.riri.eventhop.feature1.images.ImageStorageService;
+import com.riri.eventhop.feature1.tickets.TicketTier;
+import com.riri.eventhop.feature1.tickets.dto.TicketTierRequest;
+import com.riri.eventhop.feature1.tickets.dto.TicketTierResponse;
 import com.riri.eventhop.feature2.users.entity.User;
 import com.riri.eventhop.feature2.users.entity.UserRole;
 import com.riri.eventhop.feature2.users.UserRepository;
@@ -157,6 +160,11 @@ public class EventServiceImpl implements EventService {
         // This method is intentionally empty.
         // The @CacheEvict annotation takes care of evicting the cache.
     }
+    @Override
+    public Event getEventEntityById(Long id) {
+        return eventRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id " + id));
+    }
 
     @Override
     public EventDetailsResponse getEventById(Long id) {
@@ -184,6 +192,14 @@ public class EventServiceImpl implements EventService {
         event.setOrganizer(user);
         event.setCreatedAt(Instant.now());
         event.setUpdatedAt(Instant.now());
+
+        for (TicketTierRequest tierRequest : eventDetailsRequest.getTicketTiers()) {
+            TicketTier ticketTier = new TicketTier();
+            ticketTier.setName(tierRequest.getName());
+            ticketTier.setPrice(tierRequest.getPrice());
+            ticketTier.setQuota(tierRequest.getQuota());
+            event.addTicketTier(ticketTier);
+        }
 
         Event savedEvent = eventRepository.save(event);
 
@@ -228,6 +244,15 @@ public class EventServiceImpl implements EventService {
 
         mapEventDetailsRequestToEvent(eventDetailsRequest, existingEvent);
         existingEvent.setUpdatedAt(Instant.now());
+
+        existingEvent.getTicketTiers().clear();
+        for (TicketTierRequest tierRequest : eventDetailsRequest.getTicketTiers()) {
+            TicketTier ticketTier = new TicketTier();
+            ticketTier.setName(tierRequest.getName());
+            ticketTier.setPrice(tierRequest.getPrice());
+            ticketTier.setQuota(tierRequest.getQuota());
+            existingEvent.addTicketTier(ticketTier);
+        }
 
         Event savedEvent = eventRepository.save(existingEvent);
         return mapEventToDetailsResponse(savedEvent);
@@ -292,6 +317,9 @@ public class EventServiceImpl implements EventService {
         response.setAvailableSeats(event.getAvailableSeats());
         response.setEventUrl(event.getEventUrl());
         response.setOrganizer(event.getOrganizer().getName());
+        response.setTicketTiers(event.getTicketTiers().stream()
+                .map(this::mapTicketTierToResponse)
+                .collect(Collectors.toList()));
         return response;
     }
 
@@ -317,6 +345,15 @@ public class EventServiceImpl implements EventService {
                 eventsPage.getPageable(),
                 eventsPage.getTotalElements()
         );
+    }
+    private TicketTierResponse mapTicketTierToResponse(TicketTier ticketTier) {
+        TicketTierResponse response = new TicketTierResponse();
+        response.setId(ticketTier.getId());
+        response.setName(ticketTier.getName());
+        response.setPrice(ticketTier.getPrice());
+        response.setQuota(ticketTier.getQuota());
+        response.setRemainingQuota(ticketTier.getRemainingQuota());
+        return response;
     }
 
     private void mapEventDetailsRequestToEvent(EventDetailsRequest eventDetailsRequest, Event event) {

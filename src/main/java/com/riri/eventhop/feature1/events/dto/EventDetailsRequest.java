@@ -1,11 +1,9 @@
 package com.riri.eventhop.feature1.events.dto;
 
 import com.riri.eventhop.feature1.events.entity.EventCategory;
+import com.riri.eventhop.feature1.tickets.dto.TicketTierRequest;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
@@ -13,6 +11,7 @@ import org.hibernate.validator.constraints.URL;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -60,5 +59,8 @@ public class EventDetailsRequest {
 
     @URL(message = "URL format is invalid")
     private String eventUrl;
+
+    @NotEmpty(message = "At least one ticket tier must be provided")
+    private List<TicketTierRequest> ticketTiers;
 }
 //private Set<Instant> eventTimeslot;
