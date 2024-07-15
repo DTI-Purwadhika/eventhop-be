@@ -13,8 +13,6 @@ public interface UserService {
     Discount getAvailableReferralDiscount(User user);
     void useReferralDiscount(User user);
     void redeemPoints(User user, int pointsToRedeem);
-    User findByEmail(String email);
-    User save(User user);
     List<User> findReferredUsers(User referrer);
 
 }

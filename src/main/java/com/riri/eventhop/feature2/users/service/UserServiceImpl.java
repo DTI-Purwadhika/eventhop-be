@@ -27,6 +27,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
     @Override
     @Transactional
     public User registerUser(RegisterRequest request) {
@@ -52,7 +53,6 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.save(user);
     }
-
     private String generateReferralCode() {
         return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
@@ -131,16 +131,7 @@ public class UserServiceImpl implements UserService {
         user.getPoints().removeIf(p -> p.getPoints() == 0);
         userRepository.save(user);
     }
-    @Override
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-    }
 
-    @Override
-    public User save(User user) {
-        return userRepository.save(user);
-    }
     @Override
     public List<User> findReferredUsers(User referrer) {
         return userRepository.findByReferrer(referrer);

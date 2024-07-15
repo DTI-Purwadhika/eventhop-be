@@ -1,5 +1,6 @@
 package com.riri.eventhop.feature2.users.controller;
 
+import com.riri.eventhop.feature2.users.auth.AuthService;
 import com.riri.eventhop.feature2.users.entity.Point;
 import com.riri.eventhop.feature2.users.dto.*;
 import com.riri.eventhop.feature2.users.dto.ReferredUser;
@@ -7,6 +8,7 @@ import com.riri.eventhop.feature2.users.entity.Discount;
 import com.riri.eventhop.feature2.users.service.UserService;
 import com.riri.eventhop.feature2.users.entity.User;
 import com.riri.eventhop.response.Response;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,7 +31,23 @@ import java.util.stream.Collectors;
 @Validated
 @Slf4j
 public class UserController {
+    private final AuthService authService;
     private final UserService userService;
+    @PostMapping("/register")
+    public ResponseEntity<Response<RegisterResponse>> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+        User user = userService.registerUser(registerRequest);
+
+        RegisterResponse registerResponse = new RegisterResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getReferralCode()
+                // Add other fields as needed, but avoid sensitive information
+
+        );
+
+        return Response.success("User registered successfully", registerResponse);
+    }
     @PreAuthorize("hasRole('USER')")
     @GetMapping
     public ResponseEntity<UserInfoDTO> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
@@ -40,7 +58,7 @@ public class UserController {
         }
 
         String email = jwt.getClaimAsString("sub");
-        User user = userService.findByEmail(email);
+        User user = authService.findByEmail(email);
         if (user == null) {
             log.warn("User not found for email: {}", email);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -54,7 +72,7 @@ public class UserController {
         log.info("Received request for points. JWT subject: {}", jwt.getSubject());
 
         String email = jwt.getSubject();
-        User user = userService.findByEmail(email);
+        User user = authService.findByEmail(email);
 
         if (user == null) {
             log.warn("User not found for email: {}", email);
@@ -81,7 +99,7 @@ public class UserController {
         log.info("Received request for discounts. JWT subject: {}", jwt.getSubject());
 
         String email = jwt.getSubject();
-        User user = userService.findByEmail(email);
+        User user = authService.findByEmail(email);
 
         if (user == null) {
             log.warn("User not found for email: {}", email);
@@ -107,7 +125,7 @@ public class UserController {
         log.info("Received request for referral code. JWT subject: {}", jwt.getSubject());
 
         String email = jwt.getSubject();
-        User user = userService.findByEmail(email);
+        User user = authService.findByEmail(email);
 
         if (user == null) {
             log.warn("User not found for email: {}", email);
@@ -122,7 +140,7 @@ public class UserController {
         log.info("Received request for referral info. JWT subject: {}", jwt.getSubject());
 
         String email = jwt.getSubject();
-        User user = userService.findByEmail(email);
+        User user = authService.findByEmail(email);
 
         if (user == null) {
             log.warn("User not found for email: {}", email);
@@ -139,42 +157,4 @@ public class UserController {
 
         return Response.success("Referral info retrieved successfully", referralInfo);
     }
-
-//    @PostMapping("/forgot-password")
-//    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
-//        User user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-//
-//        String token = UUID.randomUUID().toString();
-//        createPasswordResetTokenForUser(user, token);
-//
-//        // Send email with reset link (token)
-//        mailService.sendPasswordResetEmail(user.getEmail(), token);
-//
-//        return ResponseEntity.ok("Password reset link sent to email");
-//    }
-//
-//    private void createPasswordResetTokenForUser(User user, String token) {
-//        PasswordResetToken myToken = new PasswordResetToken(token, user);
-//        passwordTokenRepository.save(myToken);
-//    }
-//
-//    @PostMapping("/reset-password")
-//    public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-//        PasswordResetToken resetToken = passwordTokenRepository.findByToken(token)
-//                .orElseThrow(() -> new InvalidTokenException("Invalid or expired password reset token"));
-//
-//        User user = resetToken.getUser();
-//        user.setPassword(passwordEncoder.encode(newPassword));
-//        userRepository.save(user);
-//
-//        passwordTokenRepository.delete(resetToken);
-//
-//        return ResponseEntity.ok("Password has been reset successfully");
-//    }
-//    @PostMapping("/logout")
-//    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
-//        // Optional: Add token to a blacklist or invalidate it server-side
-//        return ResponseEntity.ok().body(Map.of("message", "Logged out successfully"));
-//    }
 }
