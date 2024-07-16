@@ -6,14 +6,13 @@ import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.repository.EventRepository;
 import com.riri.eventhop.feature1.events.service.EventService;
 import com.riri.eventhop.exception.ApplicationException;
-import com.riri.eventhop.feature1.images.ImageStorageService;
 import com.riri.eventhop.feature1.tickets.TicketTier;
 import com.riri.eventhop.feature1.tickets.dto.TicketTierRequest;
 import com.riri.eventhop.feature1.tickets.dto.TicketTierResponse;
+import com.riri.eventhop.feature2.users.auth.AuthService;
 import com.riri.eventhop.feature2.users.entity.User;
 import com.riri.eventhop.feature2.users.entity.UserRole;
 import com.riri.eventhop.feature2.users.UserRepository;
-import com.riri.eventhop.feature2.users.service.UserService;
 import com.riri.eventhop.util.CustomPageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +21,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,8 +34,8 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
-    private final ImageStorageService imageStorageService;
+    private final AuthService authService;
+//    private final ImageStorageService imageStorageService;
 //    @Cacheable(value = "upcomingEvents", key = "#pageable", unless = "#result.isEmpty()")
 //    @Override
 //    public Page<EventSummaryResponse> getAllUpcomingEvents(CustomPageable pageable) {
@@ -171,10 +167,12 @@ public class EventServiceImpl implements EventService {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "Organizer ID and pageable cannot be null");
         }
 
-        User organizer = userRepository.findById(organizerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Organizer not found with id " + organizerId));
+        // Check if the organizer exists
+        if (!userRepository.existsById(organizerId)) {
+            throw new ResourceNotFoundException("Organizer not found with id " + organizerId);
+        }
 
-        Page<Event> eventsPage = eventRepository.findByOrganizerAndDeletedAtIsNull(organizer, pageable.toPageRequest());
+        Page<Event> eventsPage = eventRepository.findByOrganizerIdAndDeletedAtIsNull(organizerId, pageable.toPageRequest());
         return mapEventPageToSummaryResponsePage(eventsPage);
     }
     @Override
@@ -198,7 +196,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @PreAuthorize("hasRole('USER')")
     public EventDetailsResponse createEvent(EventDetailsRequest eventDetailsRequest) {
-        String userEmail = getCurrentUserEmail();
+        String userEmail = authService.getCurrentUserEmail();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "User not found with email: " + userEmail));
 
@@ -233,7 +231,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
     public EventDetailsResponse updateEvent(Long id, EventDetailsRequest eventDetailsRequest) {
-        String currentUserEmail = getCurrentUserEmail();
+        String currentUserEmail = authService.getCurrentUserEmail();
         Event existingEvent = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id " + id));
         if (existingEvent.isDeleted()) {
@@ -280,7 +278,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
     public void deleteEvent(Long id) {
-        String currentUserEmail = getCurrentUserEmail();
+        String currentUserEmail = authService.getCurrentUserEmail();
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id " + id));
 
@@ -300,16 +298,7 @@ public class EventServiceImpl implements EventService {
         eventRepository.save(event);
         evictFilteredEventsCache();
     }
-    private String getCurrentUserEmail() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ApplicationException(HttpStatus.UNAUTHORIZED, "User not authenticated");
-        }
-        if (authentication.getPrincipal() instanceof Jwt jwt) {
-            return jwt.getClaimAsString("email");
-        }
-        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
-    }
+
 //    private User mapUserToOrganizer(User user) {
 //        Organizer organizer = new Organizer();
 //        organizer.setId(user.getId());

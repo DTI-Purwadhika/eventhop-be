@@ -56,12 +56,11 @@
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .authorizeHttpRequests(auth -> {
                         auth.requestMatchers("/api/v1/auth/**").permitAll();
+                        auth.requestMatchers("/api/v1/users/register").permitAll();
                         auth.requestMatchers("/api/v1/events/**").permitAll();
                         auth.requestMatchers("/api/v1/categories/**").permitAll();
                         auth.requestMatchers("/api/v1/reviews/**").permitAll();
                         auth.requestMatchers("/api/v1/promotions/**").permitAll();
-                        auth.requestMatchers("/api/v1/trxticketsyalalala/**").permitAll();
-                        auth.requestMatchers("/api/v1/dashboard/**").hasRole("ORGANIZER");
                         auth.anyRequest().authenticated();
                     })
                     .oauth2Login(oauth2 -> oauth2

@@ -3,6 +3,7 @@ package com.riri.eventhop.feature1.reviews;
 import com.riri.eventhop.exception.ApplicationException;
 import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.repository.EventRepository;
+import com.riri.eventhop.feature2.users.auth.AuthService;
 import com.riri.eventhop.feature2.users.entity.User;
 import com.riri.eventhop.feature2.users.UserRepository;
 import com.riri.eventhop.util.CustomPageable;
@@ -11,9 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,12 +26,13 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
     @Override
     @Transactional
     @PreAuthorize("hasRole('USER')")
     public ReviewResponse createReview(Long eventId, ReviewRequest reviewRequest) {
-        String userEmail = getCurrentUserEmail();
+        String userEmail = authService.getCurrentUserEmail();
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "User not found"));
 
@@ -85,7 +84,7 @@ public class ReviewServiceImpl implements ReviewService {
         if (reviews.isEmpty()) {
             return 0.0;
         }
-        double sum = reviews.stream().mapToInt(Review::getRating).sum();
+        double sum = reviews.stream().mapToDouble(Review::getRating).sum();
         return sum / reviews.size();
     }
 
@@ -99,14 +98,5 @@ public class ReviewServiceImpl implements ReviewService {
         return response;
     }
 
-    private String getCurrentUserEmail() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ApplicationException(HttpStatus.UNAUTHORIZED, "User not authenticated");
-        }
-        if (authentication.getPrincipal() instanceof Jwt jwt) {
-            return jwt.getClaimAsString("email");
-        }
-        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
-    }
+
 }

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 
 @RestController
-@RequestMapping("/api/v1/profile")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 @Validated
 @Slf4j
@@ -50,7 +50,7 @@ public class UserController {
     }
     @PreAuthorize("hasRole('USER')")
     @GetMapping
-    public ResponseEntity<UserInfoDTO> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<UserInfo> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
         log.info("Received request for user info. JWT: {}", jwt);
         if (jwt == null) {
             log.warn("JWT is null in getUserInfo method");
@@ -64,8 +64,8 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        UserInfoDTO userInfoDTO = UserInfoDTO.fromUser(user);
-        return ResponseEntity.ok(userInfoDTO);
+        UserInfo userInfo = UserInfo.fromUser(user);
+        return ResponseEntity.ok(userInfo);
     }
     @GetMapping("/points")
     public ResponseEntity<Response<PointResponse>> getAvailablePoints(@AuthenticationPrincipal Jwt jwt) {

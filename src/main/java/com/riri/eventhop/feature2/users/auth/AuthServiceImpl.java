@@ -1,10 +1,15 @@
 package com.riri.eventhop.feature2.users.auth;
 
+import com.riri.eventhop.exception.ApplicationException;
 import com.riri.eventhop.exception.ResourceNotFoundException;
 import com.riri.eventhop.feature2.users.UserRepository;
 import com.riri.eventhop.feature2.users.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +21,28 @@ public class AuthServiceImpl implements AuthService{
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
-
+    @Override
+    public String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ApplicationException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
+        if (authentication.getPrincipal() instanceof Jwt jwt) {
+            return jwt.getClaim("id");
+        }
+        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
+    }
+    @Override
+    public String getCurrentUserEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ApplicationException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
+        if (authentication.getPrincipal() instanceof Jwt jwt) {
+            return jwt.getClaimAsString("email");
+        }
+        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
+    }
     @Override
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)

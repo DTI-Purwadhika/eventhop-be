@@ -24,7 +24,7 @@ public class Review {
     private User user;
 
     @Column(nullable = false)
-    private Integer rating;
+    private Double rating;
 
     @Column(length = 1000)
     private String comment;

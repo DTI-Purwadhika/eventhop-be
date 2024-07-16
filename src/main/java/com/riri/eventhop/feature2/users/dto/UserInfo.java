@@ -4,13 +4,12 @@ import com.riri.eventhop.feature2.users.entity.User;
 import com.riri.eventhop.feature2.users.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 
 @Data
 @AllArgsConstructor
-public class UserInfoDTO {
+public class UserInfo {
     private Long id;
     private String email;
     private String name;
@@ -20,11 +19,11 @@ public class UserInfoDTO {
     private String location;
     private String avatarUrl;
 
-    public static UserInfoDTO fromUser(User user) {
+    public static UserInfo fromUser(User user) {
         if (user == null) {
             return null; // or throw a custom exception
         }
-        return new UserInfoDTO(
+        return new UserInfo(
                 user.getId(),
                 user.getEmail(),
                 user.getName(),

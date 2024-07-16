@@ -1,19 +1,14 @@
 package com.riri.eventhop.feature1.events.repository;
 
 import com.riri.eventhop.feature1.events.entity.Event;
-import com.riri.eventhop.feature1.events.entity.EventCategory;
-import com.riri.eventhop.feature2.users.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,7 +67,8 @@ List<Event> findFilteredEvents(
             @Param("location") String location,
             @Param("userId") String userId,
             @Param("isFree") Boolean isFree);
-    Page<Event> findByOrganizerAndDeletedAtIsNull(User organizer, Pageable pageable);
-
+    Page<Event> findByOrganizerIdAndDeletedAtIsNull(Long organizerId, Pageable pageable);
     Optional<Event> findByIdAndDeletedAtIsNull(Long id);
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.organizer.id = :organizerId AND e.startTime BETWEEN :startDate AND :endDate")
+    Long countByOrganizerAndDateRange(@Param("organizerId") Long organizerId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }
