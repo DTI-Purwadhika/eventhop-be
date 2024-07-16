@@ -2,6 +2,7 @@ package com.riri.eventhop.feature1.events.repository;
 
 import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.entity.EventCategory;
+import com.riri.eventhop.feature2.users.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -71,5 +72,7 @@ List<Event> findFilteredEvents(
             @Param("location") String location,
             @Param("userId") String userId,
             @Param("isFree") Boolean isFree);
+    Page<Event> findByOrganizerAndDeletedAtIsNull(User organizer, Pageable pageable);
+
     Optional<Event> findByIdAndDeletedAtIsNull(Long id);
 }

@@ -22,6 +22,7 @@ public interface EventService {
 //
     Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params);
     Event getEventEntityById(Long id);
+    Page<EventSummaryResponse> getEventsByOrganizer(Long organizerId, CustomPageable pageable);
 
     EventDetailsResponse getEventById(Long id);
 

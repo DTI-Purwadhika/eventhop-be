@@ -8,6 +8,7 @@ import com.riri.eventhop.feature1.events.entity.EventCategory;
 import com.riri.eventhop.feature1.events.service.EventService;
 import com.riri.eventhop.response.PageResponse;
 import com.riri.eventhop.response.Response;
+import com.riri.eventhop.util.CustomPageable;
 import com.riri.eventhop.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -98,8 +99,8 @@ public ResponseEntity<Response<PageResponse<EventSummaryResponse>>> getFilteredE
         @RequestParam(required = false) Boolean isFree,
         @RequestParam(defaultValue = "1") Integer page,
         @RequestParam(defaultValue = "20") Integer limit,
-        @RequestParam(defaultValue = "ASC") String sortDirection,
-        @RequestParam(defaultValue = "id") String sortBy) {
+        @RequestParam(defaultValue = "ASC") String order,
+        @RequestParam(defaultValue = "id") String sort) {
 
     EventCategory eventCategory = null;
     if (category != null) {
@@ -120,23 +121,26 @@ public ResponseEntity<Response<PageResponse<EventSummaryResponse>>> getFilteredE
         params.setLocation(location);
         params.setUserId(userId);
         params.setIsFree(isFree);
-        params.setCustomPageable(PaginationUtil.createPageable(page, limit, sortDirection, sortBy));
+        params.setCustomPageable(PaginationUtil.createPageable(page, limit, order, sort));
 
     Page<EventSummaryResponse> eventsPage = eventService.getFilteredEvents(params);
 
-    PageResponse<EventSummaryResponse> pageResponse = new PageResponse<>(
-        eventsPage.getContent(),
-        eventsPage.getNumber(),
-        eventsPage.getSize(),
-        eventsPage.getTotalElements(),
-        eventsPage.getTotalPages(),
-        eventsPage.isFirst(),
-        eventsPage.isLast()
-    );
 
-    return Response.success("Filtered events fetched successfully", pageResponse);
+    return Response.success("Filtered events fetched successfully", PaginationUtil.createPageResponse(eventsPage));
 }
+    @GetMapping("/organizers/{organizerId}")
+    public ResponseEntity<Response<PageResponse<EventSummaryResponse>>> getEventsByOrganizer(
+            @PathVariable Long organizerId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) String order,
+            @RequestParam(required = false) String sort) {
 
+        CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
+        Page<EventSummaryResponse> eventsPage = eventService.getEventsByOrganizer(organizerId, pageable);
+
+        return Response.success("Organized events fetched successfully", PaginationUtil.createPageResponse(eventsPage));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Response<EventDetailsResponse>> getEventById(@PathVariable Long id) {

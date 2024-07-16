@@ -99,8 +99,8 @@ public class EventServiceImpl implements EventService {
 //        return mapEventPageToSummaryResponsePage(eventsPage);
 //    }
 
-    @Cacheable(value = "filteredEvents", key = "#params.toString()", unless = "#result.isEmpty()", cacheManager = "cacheManager")
     @Override
+    @Cacheable(value = "filteredEvents", key = "#params.toString()", unless = "#result.isEmpty()", cacheManager = "cacheManager")
     public Page<EventSummaryResponse> getFilteredEvents(GetAllEventsParams params) {
         CustomPageable customPageable = params.getCustomPageable();
 
@@ -130,8 +130,11 @@ public class EventServiceImpl implements EventService {
 
         long totalCount = countFilteredEvents(params);
 
-        return new PageImpl<>(events.stream().map(this::mapEventToSummaryResponse).collect(Collectors.toList()),
-                customPageable.toPageRequest(), totalCount);
+        return new PageImpl<>(events.stream()
+                .map(this::mapEventToSummaryResponse)
+                .collect(Collectors.toList()),
+                params.getCustomPageable().toPageRequest(),
+                totalCount);
     }
 
     private long countFilteredEvents(GetAllEventsParams params) {
@@ -159,6 +162,20 @@ public class EventServiceImpl implements EventService {
     public void evictFilteredEventsCache() {
         // This method is intentionally empty.
         // The @CacheEvict annotation takes care of evicting the cache.
+    }
+    @Override
+    @PreAuthorize("hasRole('ORGANIZER')")
+    @Cacheable(value = "eventsByOrganizer", key = "#organizerId + ':' + #pageable", unless = "#result.isEmpty()")
+    public Page<EventSummaryResponse> getEventsByOrganizer(Long organizerId, CustomPageable pageable) {
+        if (organizerId == null || pageable == null) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Organizer ID and pageable cannot be null");
+        }
+
+        User organizer = userRepository.findById(organizerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Organizer not found with id " + organizerId));
+
+        Page<Event> eventsPage = eventRepository.findByOrganizerAndDeletedAtIsNull(organizer, pageable.toPageRequest());
+        return mapEventPageToSummaryResponsePage(eventsPage);
     }
     @Override
     public Event getEventEntityById(Long id) {
