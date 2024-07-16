@@ -2,6 +2,7 @@ package com.riri.eventhop.feature1.tickets;
 
 import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.service.EventService;
+import com.riri.eventhop.feature1.tickets.dto.TicketPurchaseRequest;
 import com.riri.eventhop.feature1.tickets.dto.TicketResponse;
 import com.riri.eventhop.feature2.users.auth.AuthService;
 import com.riri.eventhop.feature2.users.entity.User;
@@ -27,12 +28,18 @@ public class TicketController {
     @PostMapping("/purchase")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Response<TicketResponse>> purchaseTicket(
-            @RequestParam Long eventId,
-            @RequestParam String name,
+            @RequestBody TicketPurchaseRequest request,
             @AuthenticationPrincipal Jwt jwt) {
 
         User user = authService.findByEmail(jwt.getSubject());
-        Ticket ticket = ticketService.purchaseTicket(eventId, name, user);
+        Ticket ticket = ticketService.purchaseTicket(
+                request.getEventId(),
+                request.getTierName(),
+                user,
+                request.getPromotionCode(),
+                request.getPointsToUse(),
+                request.isUseReferralDiscount()
+        );
 
         TicketResponse ticketResponse = mapTicketToResponse(ticket);
         return Response.success("Ticket purchased successfully", ticketResponse);

@@ -22,9 +22,9 @@ public class Discount {
     @NotNull
     @Min(value = 0, message = "Percentage must be at least 0")
     @Max(value = 100, message = "Percentage must be at most 100")
-    private Integer discountPercentage;
-
-    private boolean used = false;
+    private int discountPercentage;
 
     private LocalDateTime expiryDate;
+
+    private boolean used;
 }

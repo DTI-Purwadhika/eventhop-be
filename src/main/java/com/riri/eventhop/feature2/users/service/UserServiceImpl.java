@@ -1,7 +1,6 @@
 package com.riri.eventhop.feature2.users.service;
 
 import com.riri.eventhop.exception.ApplicationException;
-import com.riri.eventhop.exception.ResourceNotFoundException;
 import com.riri.eventhop.feature2.users.UserRepository;
 import com.riri.eventhop.feature2.users.dto.RegisterRequest;
 import com.riri.eventhop.feature2.users.entity.Discount;
@@ -14,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -76,33 +74,12 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public Integer calculateAvailablePoints(User user) {
-        if (user == null) {
-            log.warn("Attempted to calculate points for null user");
-            return 0;
-        }
         return user.getPoints().stream()
                 .filter(p -> p.getExpiryDate().isAfter(LocalDateTime.now()))
                 .mapToInt(Point::getPoints)
                 .sum();
     }
-    @Override
-    public Discount getAvailableReferralDiscount(User user) {
-        return user.getDiscounts().stream()
-                .filter(d -> d.getExpiryDate().isAfter(LocalDateTime.now()) && !d.isUsed())
-                .findFirst()
-                .orElse(null);
-    }
 
-
-    @Override
-    @Transactional
-    public void useReferralDiscount(User user) {
-        Discount referralDiscount = getAvailableReferralDiscount(user);
-        if (referralDiscount != null) {
-            referralDiscount.setUsed(true);
-            userRepository.save(user);
-        }
-    }
     @Override
     @Transactional
     public void redeemPoints(User user, int pointsToRedeem) {
@@ -112,7 +89,7 @@ public class UserServiceImpl implements UserService {
         }
 
         List<Point> points = user.getPoints().stream()
-                .filter(p -> p.getExpiryDate().isAfter(LocalDate.now().atStartOfDay()))
+                .filter(p -> p.getExpiryDate().isAfter(LocalDateTime.now()))
                 .sorted(Comparator.comparing(Point::getExpiryDate))
                 .toList();
 
@@ -130,6 +107,26 @@ public class UserServiceImpl implements UserService {
 
         user.getPoints().removeIf(p -> p.getPoints() == 0);
         userRepository.save(user);
+    }
+
+    @Override
+    public Discount getAvailableReferralDiscount(User user) {
+        return user.getDiscounts().stream()
+                .filter(d -> d.getExpiryDate().isAfter(LocalDateTime.now()) && !d.isUsed())
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public void useReferralDiscount(User user) {
+        Discount referralDiscount = getAvailableReferralDiscount(user);
+        if (referralDiscount != null) {
+            referralDiscount.setUsed(true);
+            userRepository.save(user);
+        } else {
+            throw new ApplicationException("No available referral discount found for this user");
+        }
     }
 
     @Override
