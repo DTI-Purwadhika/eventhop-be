@@ -1,5 +1,7 @@
 package com.riri.eventhop.util;
 
+import com.riri.eventhop.response.PageResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 
 public class PaginationUtil {
@@ -16,5 +18,16 @@ public class PaginationUtil {
         String validSort = (sort != null && !sort.isEmpty()) ? sort : DEFAULT_SORT;
 
         return new CustomPageable(validPage, validLimit, validOrder, validSort);
+    }
+    public static <T> PageResponse<T> createPageResponse(Page<T> page) {
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber() + 1,
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages(),
+                page.isFirst(),
+                page.isLast()
+        );
     }
 }

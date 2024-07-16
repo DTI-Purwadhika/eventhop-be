@@ -2,6 +2,7 @@ package com.riri.eventhop.feature1.reviews;
 
 import com.riri.eventhop.response.PageResponse;
 import com.riri.eventhop.response.Response;
+import com.riri.eventhop.util.CustomPageable;
 import com.riri.eventhop.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,23 +29,12 @@ public class ReviewController {
             @PathVariable Long eventId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer limit,
-            @RequestParam(defaultValue = "DESC") String sortDirection,
-            @RequestParam(defaultValue = "createdAt") String sortBy) {
+            @RequestParam(defaultValue = "DESC") String order,
+            @RequestParam(defaultValue = "createdAt") String sort) {
+        CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
+        Page<ReviewResponse> reviewsPage = reviewService.getReviewsByEventId(eventId, pageable);
 
-        Page<ReviewResponse> reviewsPage = reviewService.getReviewsByEventId(eventId,
-                PaginationUtil.createPageable(page, limit, sortDirection, sortBy));
-
-        PageResponse<ReviewResponse> pageResponse = new PageResponse<>(
-                reviewsPage.getContent(),
-                reviewsPage.getNumber(),
-                reviewsPage.getSize(),
-                reviewsPage.getTotalElements(),
-                reviewsPage.getTotalPages(),
-                reviewsPage.isFirst(),
-                reviewsPage.isLast()
-        );
-
-        return Response.success("Reviews for event fetched successfully", pageResponse);
+        return Response.success("Reviews for event fetched successfully", PaginationUtil.createPageResponse(reviewsPage));
     }
 
     @GetMapping("/events/{eventId}/average-rating")
@@ -58,22 +48,11 @@ public class ReviewController {
             @PathVariable Long organizerId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer limit,
-            @RequestParam(defaultValue = "DESC") String sortDirection,
-            @RequestParam(defaultValue = "createdAt") String sortBy) {
+            @RequestParam(defaultValue = "DESC") String order,
+            @RequestParam(defaultValue = "createdAt") String sort) {
+        CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
+        Page<ReviewResponse> reviewsPage = reviewService.getReviewsByOrganizerId(organizerId, pageable);
 
-        Page<ReviewResponse> reviewsPage = reviewService.getReviewsByOrganizerId(organizerId,
-                PaginationUtil.createPageable(page, limit, sortDirection, sortBy));
-
-        PageResponse<ReviewResponse> pageResponse = new PageResponse<>(
-                reviewsPage.getContent(),
-                reviewsPage.getNumber(),
-                reviewsPage.getSize(),
-                reviewsPage.getTotalElements(),
-                reviewsPage.getTotalPages(),
-                reviewsPage.isFirst(),
-                reviewsPage.isLast()
-        );
-
-        return Response.success("Reviews for organizer fetched successfully", pageResponse);
+        return Response.success("Reviews for organizer fetched successfully", PaginationUtil.createPageResponse(reviewsPage));
     }
 }

@@ -137,16 +137,16 @@ public class PromotionServiceImpl implements PromotionService {
         promotionRepository.save(promotion);
     }
 
-    private String getCurrentUserEmail() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ApplicationException(HttpStatus.UNAUTHORIZED, "User not authenticated");
-        }
-        if (authentication.getPrincipal() instanceof Jwt jwt) {
-            return jwt.getClaimAsString("email");
-        }
-        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
-    }
+//    private String getCurrentUserEmail() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication == null || !authentication.isAuthenticated()) {
+//            throw new ApplicationException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+//        }
+//        if (authentication.getPrincipal() instanceof Jwt jwt) {
+//            return jwt.getClaimAsString("email");
+//        }
+//        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
+//    }
 
     private PromotionResponse mapToResponse(Promotion promotion) {
         PromotionResponse dto = new PromotionResponse();

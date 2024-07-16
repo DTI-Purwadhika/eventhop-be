@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,8 +42,7 @@ public class PromotionController {
     ) {
         CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
         Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsByOrganizer(organizerId, pageable);
-        PageResponse<PromotionResponse> pageResponse = convertToPageResponse(promotionsPage);
-        return Response.success("Promotions retrieved successfully", pageResponse);
+        return Response.success("Promotions retrieved successfully", PaginationUtil.createPageResponse(promotionsPage));
     }
     @GetMapping("/events/{eventId}")
     public ResponseEntity<Response<PageResponse<PromotionResponse>>> getAllPromotionsForEvent(
@@ -56,8 +54,7 @@ public class PromotionController {
     ) {
         CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
         Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsForEvent(eventId, pageable);
-        PageResponse<PromotionResponse> pageResponse = convertToPageResponse(promotionsPage);
-        return Response.success("Promotions retrieved successfully", pageResponse);
+        return Response.success("Promotions retrieved successfully", PaginationUtil.createPageResponse(promotionsPage));
     }
 
     @GetMapping("/events/{eventId}/{id}")
@@ -92,9 +89,8 @@ public class PromotionController {
     ) {
         CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
         Page<PromotionResponse> promotionsPage = promotionService.getActivePromotionsForEvent(eventId, pageable);
-        PageResponse<PromotionResponse> pageResponse = convertToPageResponse(promotionsPage);
 
-        return Response.success("Active promotions retrieved successfully", pageResponse);
+        return Response.success("Active promotions retrieved successfully", PaginationUtil.createPageResponse(promotionsPage));
     }
 
     @PutMapping("/events/{eventId}/{id}")
@@ -108,15 +104,5 @@ public class PromotionController {
         promotionService.deletePromotion(id);
         return Response.success("Promotion deleted successfully");
     }
-    private PageResponse<PromotionResponse> convertToPageResponse(Page<PromotionResponse> page) {
-        return new PageResponse<>(
-                page.getContent(),
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages(),
-                page.isFirst(),
-                page.isLast()
-        );
-    }
+
 }
