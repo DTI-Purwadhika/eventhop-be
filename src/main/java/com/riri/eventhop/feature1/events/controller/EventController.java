@@ -90,8 +90,8 @@ public class EventController {
 public ResponseEntity<Response<PageResponse<EventSummaryResponse>>> getFilteredEvents(
         @RequestParam(required = false) String category,
         @RequestParam(required = false) String filter,
-        @RequestParam(required = false) BigDecimal minPrice,
-        @RequestParam(required = false) BigDecimal maxPrice,
+        @RequestParam(required = false) BigDecimal minTicketPrice,
+        @RequestParam(required = false) BigDecimal maxTicketPrice,
         @RequestParam(required = false) Instant fromDate,
         @RequestParam(required = false) Instant untilDate,
         @RequestParam(required = false) String location,
@@ -114,8 +114,8 @@ public ResponseEntity<Response<PageResponse<EventSummaryResponse>>> getFilteredE
     GetAllEventsParams params = new GetAllEventsParams();
         params.setCategory(eventCategory);
         params.setFilter(filter);
-        params.setMinPrice(minPrice);
-        params.setMaxPrice(maxPrice);
+        params.setMinTicketPrice(minTicketPrice);
+        params.setMaxTicketPrice(maxTicketPrice);
         params.setFromDate(fromDate);
         params.setUntilDate(untilDate);
         params.setLocation(location);

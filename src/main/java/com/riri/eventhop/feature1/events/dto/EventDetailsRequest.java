@@ -46,11 +46,9 @@ public class EventDetailsRequest {
     @NotNull(message = "End time must be provided")
     private Instant endTime;
 
-    @NotNull(message = "Price must be provided")
     @Min(value = 0, message = "Price must be greater than or equal to {value}")
     private BigDecimal price;
 
-    @NotNull(message = "Free status must be provided")
     private Boolean isFree;
 
     @NotNull(message = "Available seats must be provided")

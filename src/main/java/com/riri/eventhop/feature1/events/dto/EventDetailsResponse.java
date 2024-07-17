@@ -23,7 +23,7 @@ public class EventDetailsResponse implements Serializable{
     private String location;
     private Instant startTime;
     private Instant endTime;
-//    private BigDecimal price;
+    private BigDecimal price;
     private Boolean isFree;
     private Integer availableSeats;
     private String eventUrl;

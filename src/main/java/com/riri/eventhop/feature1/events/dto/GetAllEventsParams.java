@@ -12,8 +12,8 @@ import java.time.Instant;
 public class GetAllEventsParams {
     private EventCategory category;
     private String filter;
-    private BigDecimal minPrice;
-    private BigDecimal maxPrice;
+    private BigDecimal minTicketPrice;
+    private BigDecimal maxTicketPrice;
     private Instant fromDate;
     private Instant untilDate;
     private String location;

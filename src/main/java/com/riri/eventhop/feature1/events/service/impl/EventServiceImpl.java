@@ -101,8 +101,8 @@ public class EventServiceImpl implements EventService {
         CustomPageable customPageable = params.getCustomPageable();
 
         String category = params.getCategory() != null ? params.getCategory().name() : null;
-        String minPrice = params.getMinPrice() != null ? params.getMinPrice().toString() : null;
-        String maxPrice = params.getMaxPrice() != null ? params.getMaxPrice().toString() : null;
+        String minTicketPrice = params.getMinTicketPrice() != null ? params.getMinTicketPrice().toString() : null;
+        String maxTicketPrice = params.getMaxTicketPrice() != null ? params.getMaxTicketPrice().toString() : null;
         String fromDate = params.getFromDate() != null ? params.getFromDate().toString() : null;
         String untilDate = params.getUntilDate() != null ? params.getUntilDate().toString() : null;
         String userId = params.getUserId() != null ? params.getUserId().toString() : null;
@@ -113,8 +113,8 @@ public class EventServiceImpl implements EventService {
         List<Event> events = eventRepository.findFilteredEvents(
                 category,
                 params.getFilter(),
-                minPrice,
-                maxPrice,
+                minTicketPrice,
+                maxTicketPrice,
                 fromDate,
                 untilDate,
                 params.getLocation(),
@@ -135,8 +135,8 @@ public class EventServiceImpl implements EventService {
 
     private long countFilteredEvents(GetAllEventsParams params) {
         String category = params.getCategory() != null ? params.getCategory().name() : null;
-        String minPrice = params.getMinPrice() != null ? params.getMinPrice().toString() : null;
-        String maxPrice = params.getMaxPrice() != null ? params.getMaxPrice().toString() : null;
+        String minTicketPrice = params.getMinTicketPrice() != null ? params.getMinTicketPrice().toString() : null;
+        String maxTicketPrice = params.getMaxTicketPrice() != null ? params.getMaxTicketPrice().toString() : null;
         String fromDate = params.getFromDate() != null ? params.getFromDate().toString() : null;
         String untilDate = params.getUntilDate() != null ? params.getUntilDate().toString() : null;
         String userId = params.getUserId() != null ? params.getUserId().toString() : null;
@@ -144,8 +144,8 @@ public class EventServiceImpl implements EventService {
         return eventRepository.countFilteredEvents(
                 category,
                 params.getFilter(),
-                minPrice,
-                maxPrice,
+                minTicketPrice,
+                maxTicketPrice,
                 fromDate,
                 untilDate,
                 params.getLocation(),
@@ -305,7 +305,7 @@ public class EventServiceImpl implements EventService {
         response.setLocation(event.getLocation());
         response.setStartTime(event.getStartTime());
         response.setEndTime(event.getEndTime());
-//        response.setPrice(event.getPrice());
+        response.setPrice(event.getPrice());
         response.setIsFree(event.getIsFree());
         response.setAvailableSeats(event.getAvailableSeats());
         response.setEventUrl(event.getEventUrl());
@@ -324,7 +324,7 @@ public class EventServiceImpl implements EventService {
         response.setImageUrl(event.getImageUrl());
         response.setStartTime(event.getStartTime());
         response.setLocation(event.getLocation());
-//        response.setPrice(event.getPrice());
+        response.setPrice(event.getPrice());
         response.setIsFree(event.getIsFree());
         response.setOrganizer(event.getOrganizer().getName());
         return response;
@@ -359,7 +359,7 @@ public class EventServiceImpl implements EventService {
         event.setLocation(eventDetailsRequest.getLocation());
         event.setStartTime(eventDetailsRequest.getStartTime());
         event.setEndTime(eventDetailsRequest.getEndTime());
-//        event.setPrice(eventDetailsRequest.getPrice());
+        event.setPrice(eventDetailsRequest.getPrice());
         event.setIsFree(eventDetailsRequest.getIsFree());
         event.setAvailableSeats(eventDetailsRequest.getAvailableSeats());
         event.setEventUrl(eventDetailsRequest.getEventUrl());
