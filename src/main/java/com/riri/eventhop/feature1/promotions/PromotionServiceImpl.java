@@ -79,6 +79,7 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ORGANIZER')")
     public Page<PromotionResponse> getActivePromotionsForEvent(Long eventId, CustomPageable pageable) {
         LocalDateTime now = LocalDateTime.now();
         Page<Promotion> promotions = promotionRepository.findActivePromotionsForEvent(eventId, now, pageable.toPageRequest());

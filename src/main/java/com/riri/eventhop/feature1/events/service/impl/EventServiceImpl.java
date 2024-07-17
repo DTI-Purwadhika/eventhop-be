@@ -6,7 +6,7 @@ import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.repository.EventRepository;
 import com.riri.eventhop.feature1.events.service.EventService;
 import com.riri.eventhop.exception.ApplicationException;
-import com.riri.eventhop.feature1.tickets.TicketTier;
+import com.riri.eventhop.feature1.tickets.entity.TicketTier;
 import com.riri.eventhop.feature1.tickets.dto.TicketTierRequest;
 import com.riri.eventhop.feature1.tickets.dto.TicketTierResponse;
 import com.riri.eventhop.feature2.users.auth.AuthService;

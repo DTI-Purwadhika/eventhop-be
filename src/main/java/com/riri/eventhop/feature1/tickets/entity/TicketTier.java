@@ -1,6 +1,7 @@
-package com.riri.eventhop.feature1.tickets;
+package com.riri.eventhop.feature1.tickets.entity;
 
 import com.riri.eventhop.feature1.events.entity.Event;
+import com.riri.eventhop.feature2.users.entity.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -31,6 +32,15 @@ public class TicketTier {
     @ManyToOne
     @JoinColumn(name = "event_id")
     private Event event;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "organizer_id")
+    private User organizer;
+
 
     @NotNull(message = "Remaining quota must be provided")
     @Min(value = 0, message = "Remaining quota must be greater than or equal to {value}")

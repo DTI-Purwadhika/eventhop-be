@@ -1,4 +1,4 @@
-package com.riri.eventhop.feature1.tickets;
+package com.riri.eventhop.feature1.tickets.entity;
 
 import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature2.users.entity.User;
@@ -29,6 +29,10 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "organizer_id")
+    private User organizer;
 
     @NotNull
     @ManyToOne
