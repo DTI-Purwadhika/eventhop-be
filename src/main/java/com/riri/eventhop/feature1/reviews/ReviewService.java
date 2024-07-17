@@ -9,7 +9,7 @@ import java.util.List;
 public interface ReviewService {
     ReviewResponse createReview(Long eventId, ReviewRequest reviewRequest);
     Page<ReviewResponse> getReviewsByEventId(Long eventId, CustomPageable pageable);
-    Page<ReviewResponse> getReviewsByOrganizerId(Long organizerId, CustomPageable pageable);
+    Page<ReviewResponse> getReviewsByOrganizerId(CustomPageable pageable);
     double getAverageRatingForEvent(Long eventId);
 
 }

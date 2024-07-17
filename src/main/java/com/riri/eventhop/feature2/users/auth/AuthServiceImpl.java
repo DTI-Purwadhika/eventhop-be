@@ -21,27 +21,23 @@ public class AuthServiceImpl implements AuthService{
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
+
     @Override
-    public String getCurrentUserId() {
+    public Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ApplicationException(HttpStatus.UNAUTHORIZED, "User not authenticated");
         }
         if (authentication.getPrincipal() instanceof Jwt jwt) {
-            return jwt.getClaim("id");
+            return jwt.getClaim("userId");
         }
         throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
     }
+
     @Override
-    public String getCurrentUserEmail() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ApplicationException(HttpStatus.UNAUTHORIZED, "User not authenticated");
-        }
-        if (authentication.getPrincipal() instanceof Jwt jwt) {
-            return jwt.getClaimAsString("email");
-        }
-        throw new ApplicationException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected authentication type");
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
     @Override
     public User findByEmail(String email) {

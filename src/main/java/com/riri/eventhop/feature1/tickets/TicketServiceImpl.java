@@ -6,6 +6,10 @@ import com.riri.eventhop.feature1.events.entity.Event;
 import com.riri.eventhop.feature1.events.service.EventService;
 import com.riri.eventhop.feature1.promotions.PromotionService;
 import com.riri.eventhop.feature1.promotions.dto.PromotionResponse;
+import com.riri.eventhop.feature1.tickets.entity.Ticket;
+import com.riri.eventhop.feature1.tickets.entity.TicketTier;
+import com.riri.eventhop.feature1.tickets.repository.TicketRepository;
+import com.riri.eventhop.feature1.tickets.repository.TicketTierRepository;
 import com.riri.eventhop.feature2.users.entity.Discount;
 import com.riri.eventhop.feature2.users.entity.User;
 import com.riri.eventhop.feature2.users.service.UserService;
@@ -15,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -116,4 +121,14 @@ public class TicketServiceImpl implements TicketService {
     private String generateTicketCode() {
         return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
+    @Override
+    public List<Ticket> getPurchaseHistory(User user) {
+        return ticketRepository.findByUser(user);
+    }
+
+    @Override
+    public List<Ticket> getTransactionHistoryForOrganizer(User organizer) {
+        return ticketRepository.findByEventOrganizer(organizer);
+    }
+
 }

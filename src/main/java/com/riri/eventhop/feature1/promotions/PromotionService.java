@@ -14,7 +14,7 @@ public interface PromotionService {
     PromotionResponse getPromotionByCode(String code);
     Page<PromotionResponse> getAllPromotionsForEvent(Long eventId, CustomPageable pageable);
     Page<PromotionResponse> getActivePromotionsForEvent(Long eventId, CustomPageable pageable);
-    Page<PromotionResponse> getAllPromotionsByOrganizer(Long organizerId, CustomPageable pageable);
+    Page<PromotionResponse> getAllPromotionsByOrganizer(CustomPageable pageable);
     PromotionResponse updatePromotion(Long id, PromotionRequest promotionRequest);
     void deletePromotion(Long id);
     boolean isPromotionActive(Long promotionId);

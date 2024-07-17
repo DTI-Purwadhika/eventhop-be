@@ -40,7 +40,7 @@
             return Jwts.builder()
                     .subject(user.getEmail()) // Use email as the subject
                     .claim("email", user.getEmail())
-                    .claim("userId", user.getId().toString())
+                    .claim("userId", user.getId())
                     .claim("name", user.getName())
                     .claim("referralCode", user.getReferralCode())
                     .claim("bio", user.getBio())

@@ -43,15 +43,14 @@ public class ReviewController {
         return Response.success("Average rating fetched successfully", averageRating);
     }
 
-    @GetMapping("/organizers/{organizerId}")
-    public ResponseEntity<Response<PageResponse<ReviewResponse>>> getReviewsByOrganizerId(
-            @PathVariable Long organizerId,
+    @GetMapping("/organizer")
+    public ResponseEntity<Response<PageResponse<ReviewResponse>>> getReviewsByOrganizer(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer limit,
             @RequestParam(defaultValue = "DESC") String order,
             @RequestParam(defaultValue = "createdAt") String sort) {
         CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
-        Page<ReviewResponse> reviewsPage = reviewService.getReviewsByOrganizerId(organizerId, pageable);
+        Page<ReviewResponse> reviewsPage = reviewService.getReviewsByOrganizerId(pageable);
 
         return Response.success("Reviews for organizer fetched successfully", PaginationUtil.createPageResponse(reviewsPage));
     }

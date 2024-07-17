@@ -32,14 +32,14 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     @PreAuthorize("hasRole('USER')")
     public ReviewResponse createReview(Long eventId, ReviewRequest reviewRequest) {
-        String userEmail = authService.getCurrentUserEmail();
-        User user = userRepository.findByEmail(userEmail)
+        Long userId = authService.getCurrentUserId();
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "User not found"));
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "Event not found"));
 
-        if (reviewRepository.existsByEventIdAndUserId(eventId, user.getId())) {
+        if (reviewRepository.existsByEventIdAndUserId(eventId, userId)) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "You have already reviewed this event");
         }
 
@@ -56,16 +56,18 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Page<ReviewResponse> getReviewsByEventId(Long eventId, CustomPageable pageable) {
-        Page<Review> reviewsPage = reviewRepository.findAll(pageable.toPageRequest());
+        Page<Review> reviewsPage = reviewRepository.findByEventId(eventId, pageable.toPageRequest());
         List<ReviewResponse> reviewResponses = reviewsPage.getContent().stream()
                 .map(this::mapReviewToResponse)
                 .collect(Collectors.toList());
 
         return new PageImpl<>(reviewResponses, pageable.toPageRequest(), reviewsPage.getTotalElements());
     }
+
     @Override
     @PreAuthorize("hasRole('ORGANIZER')")
-    public Page<ReviewResponse> getReviewsByOrganizerId(Long organizerId, CustomPageable pageable) {
+    public Page<ReviewResponse> getReviewsByOrganizerId(CustomPageable pageable) {
+        Long organizerId = authService.getCurrentUserId();
         User organizer = userRepository.findById(organizerId)
                 .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "Organizer not found"));
 
@@ -97,6 +99,4 @@ public class ReviewServiceImpl implements ReviewService {
         response.setCreatedAt(review.getCreatedAt());
         return response;
     }
-
-
 }

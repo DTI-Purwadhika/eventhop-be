@@ -7,6 +7,7 @@ import com.riri.eventhop.feature1.events.repository.EventRepository;
 
 import com.riri.eventhop.feature1.promotions.dto.PromotionRequest;
 import com.riri.eventhop.feature1.promotions.dto.PromotionResponse;
+import com.riri.eventhop.feature2.users.auth.AuthService;
 import com.riri.eventhop.util.CustomPageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,13 +30,25 @@ import java.util.stream.Collectors;
 public class PromotionServiceImpl implements PromotionService {
     private final PromotionRepository promotionRepository;
     private final EventRepository eventRepository;
+    private final AuthService authService;
+
+    // Helper method to check event ownership
+    private Event getEventAndCheckOwnership(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
+
+        if (!event.getOrganizer().getId().equals(authService.getCurrentUserId())) {
+            throw new ApplicationException(HttpStatus.FORBIDDEN, "You are not authorized to access this event's promotions");
+        }
+
+        return event;
+    }
 
     @Override
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
     public PromotionResponse createPromotion(PromotionRequest promotionRequest, Long eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
+        Event event = getEventAndCheckOwnership(eventId);
 
         Promotion promotion = new Promotion(
                 promotionRequest.getName(),
@@ -54,36 +67,42 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     @PreAuthorize("hasRole('ORGANIZER')")
-    public Page<PromotionResponse> getAllPromotionsByOrganizer(Long organizerId, CustomPageable pageable) {
-        Page<Promotion> promotions = promotionRepository.findAllByOrganizerId(organizerId, pageable.toPageRequest());
+    public Page<PromotionResponse> getAllPromotionsByOrganizer(CustomPageable pageable) {
+        Long currentUserId = authService.getCurrentUserId();
+        Page<Promotion> promotions = promotionRepository.findAllByOrganizerId(currentUserId, pageable.toPageRequest());
         return promotions.map(this::mapToResponse);
     }
     @Override
-    public PromotionResponse getPromotionById(Long id) {
-        Promotion promotion = promotionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with id: " + id));
-        return mapToResponse(promotion);
-    }
-
-    @Override
-    public PromotionResponse getPromotionByCode(String code) {
-        Promotion promotion = promotionRepository.findByCode(code)
-                .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with code: " + code));
-        return mapToResponse(promotion);
-    }
-
-    @Override
+    @PreAuthorize("hasRole('ORGANIZER')")
     public Page<PromotionResponse> getAllPromotionsForEvent(Long eventId, CustomPageable pageable) {
+        getEventAndCheckOwnership(eventId); // This checks ownership
+
         Page<Promotion> promotions = promotionRepository.findByEventId(eventId, pageable.toPageRequest());
         return promotions.map(this::mapToResponse);
     }
 
     @Override
     @PreAuthorize("hasRole('ORGANIZER')")
+    public PromotionResponse getPromotionById(Long id) {
+        Promotion promotion = promotionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with id: " + id));
+
+        getEventAndCheckOwnership(promotion.getEvent().getId()); // This checks ownership
+
+        return mapToResponse(promotion);
+    }
+
+    @Override
     public Page<PromotionResponse> getActivePromotionsForEvent(Long eventId, CustomPageable pageable) {
         LocalDateTime now = LocalDateTime.now();
         Page<Promotion> promotions = promotionRepository.findActivePromotionsForEvent(eventId, now, pageable.toPageRequest());
         return promotions.map(this::mapToResponse);
+    }
+    @Override
+    public PromotionResponse getPromotionByCode(String code) {
+        Promotion promotion = promotionRepository.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with code: " + code));
+        return mapToResponse(promotion);
     }
 
     @Override
@@ -93,6 +112,9 @@ public class PromotionServiceImpl implements PromotionService {
         Promotion promotion = promotionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with id: " + id));
 
+        getEventAndCheckOwnership(promotion.getEvent().getId()); // This checks ownership
+
+        // Update promotion fields
         promotion.setName(promotionRequest.getName());
         promotion.setCode(promotionRequest.getCode());
         promotion.setType(promotionRequest.getType());
@@ -108,10 +130,12 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
-
     public void deletePromotion(Long id) {
         Promotion promotion = promotionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Promotion not found with id: " + id));
+
+        getEventAndCheckOwnership(promotion.getEvent().getId()); // This checks ownership
+
         promotionRepository.delete(promotion);
     }
 

@@ -28,20 +28,19 @@ public class PromotionController {
         try {
             PromotionResponse createdPromotion = promotionService.createPromotion(promotionDTO, eventId);
             return Response.success("Promotion created successfully", createdPromotion);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ApplicationException e) {
             return Response.failed(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
-    @GetMapping("/organizers/{organizerId}")
+    @GetMapping("/organizer")
     public ResponseEntity<Response<PageResponse<PromotionResponse>>> getAllPromotionsByOrganizer(
-            @PathVariable Long organizerId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) String order,
             @RequestParam(required = false) String sort
     ) {
         CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
-        Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsByOrganizer(organizerId, pageable);
+        Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsByOrganizer(pageable);
         return Response.success("Promotions retrieved successfully", PaginationUtil.createPageResponse(promotionsPage));
     }
     @GetMapping("/events/{eventId}")
@@ -53,17 +52,22 @@ public class PromotionController {
             @RequestParam(required = false) String sort
     ) {
         CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
-        Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsForEvent(eventId, pageable);
-        return Response.success("Promotions retrieved successfully", PaginationUtil.createPageResponse(promotionsPage));
+        try {
+            Page<PromotionResponse> promotionsPage = promotionService.getAllPromotionsForEvent(eventId, pageable);
+            return Response.success("Promotions retrieved successfully", PaginationUtil.createPageResponse(promotionsPage));
+        } catch (IllegalArgumentException | ApplicationException e) {
+            return Response.failed(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        }
     }
 
     @GetMapping("/events/{eventId}/{id}")
     public ResponseEntity<Response<PromotionResponse>> getPromotionById(@PathVariable Long id) {
-        PromotionResponse promotion = promotionService.getPromotionById(id);
-        if (!promotionService.isPromotionActive(id)) {
-            return Response.failed(HttpStatus.BAD_REQUEST.value(), "Promotion is not active");
+        try {
+            PromotionResponse promotion = promotionService.getPromotionById(id);
+            return Response.success("Promotion retrieved successfully", promotion);
+        } catch (IllegalArgumentException | ApplicationException e) {
+            return Response.failed(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
-        return Response.success("Promotion retrieved successfully", promotion);
     }
     @PostMapping("/events/{eventId}/{id}/use")
     public ResponseEntity<Response<Void>> usePromotion(@PathVariable Long id) {
@@ -95,14 +99,22 @@ public class PromotionController {
 
     @PutMapping("/events/{eventId}/{id}")
     public ResponseEntity<Response<PromotionResponse>> updatePromotion(@PathVariable Long id, @Valid @RequestBody PromotionRequest promotionDetails) {
-        PromotionResponse updatedPromotion = promotionService.updatePromotion(id, promotionDetails);
-        return Response.success("Promotion updated successfully", updatedPromotion);
+        try {
+            PromotionResponse updatedPromotion = promotionService.updatePromotion(id, promotionDetails);
+            return Response.success("Promotion updated successfully", updatedPromotion);
+        } catch (ApplicationException e) {
+            return Response.failed(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        }
     }
 
     @DeleteMapping("/events/{eventId}/{id}")
     public ResponseEntity<Response<Void>> deletePromotion(@PathVariable Long id) {
-        promotionService.deletePromotion(id);
-        return Response.success("Promotion deleted successfully");
+        try {
+            promotionService.deletePromotion(id);
+            return Response.success("Promotion deleted successfully");
+        } catch (ApplicationException e) {
+            return Response.failed(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        }
     }
 
 }

@@ -16,6 +16,7 @@ import java.util.List;
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findByUser(User user);
     List<Ticket> findByEvent(Event event);
+    List<Ticket> findByEventOrganizer(User organizer);
 
     @Query("SELECT COALESCE(SUM(t.price), 0) FROM Ticket t WHERE t.event.id = :eventId AND t.createdAt BETWEEN :startDate AND :endDate")
     BigDecimal sumRevenueByEventIdAndDateRange(Long eventId, Instant startDate, Instant endDate);

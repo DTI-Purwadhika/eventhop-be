@@ -128,16 +128,15 @@ public ResponseEntity<Response<PageResponse<EventSummaryResponse>>> getFilteredE
 
     return Response.success("Filtered events fetched successfully", PaginationUtil.createPageResponse(eventsPage));
 }
-    @GetMapping("/organizers/{organizerId}")
+    @GetMapping("/organizer")
     public ResponseEntity<Response<PageResponse<EventSummaryResponse>>> getEventsByOrganizer(
-            @PathVariable Long organizerId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) String order,
             @RequestParam(required = false) String sort) {
 
         CustomPageable pageable = PaginationUtil.createPageable(page, limit, order, sort);
-        Page<EventSummaryResponse> eventsPage = eventService.getEventsByOrganizer(organizerId, pageable);
+        Page<EventSummaryResponse> eventsPage = eventService.getEventsByOrganizer(pageable);
 
         return Response.success("Organized events fetched successfully", PaginationUtil.createPageResponse(eventsPage));
     }

@@ -161,18 +161,15 @@ public class EventServiceImpl implements EventService {
     }
     @Override
     @PreAuthorize("hasRole('ORGANIZER')")
-    @Cacheable(value = "eventsByOrganizer", key = "#organizerId + ':' + #pageable", unless = "#result.isEmpty()")
-    public Page<EventSummaryResponse> getEventsByOrganizer(Long organizerId, CustomPageable pageable) {
-        if (organizerId == null || pageable == null) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Organizer ID and pageable cannot be null");
+    @Cacheable(value = "eventsByOrganizer", key = "#pageable", unless = "#result.isEmpty()")
+    public Page<EventSummaryResponse> getEventsByOrganizer(CustomPageable pageable) {
+        if (pageable == null) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Pageable cannot be null");
         }
 
-        // Check if the organizer exists
-        if (!userRepository.existsById(organizerId)) {
-            throw new ResourceNotFoundException("Organizer not found with id " + organizerId);
-        }
+        Long currentUserId = authService.getCurrentUserId();
 
-        Page<Event> eventsPage = eventRepository.findByOrganizerIdAndDeletedAtIsNull(organizerId, pageable.toPageRequest());
+        Page<Event> eventsPage = eventRepository.findByOrganizerIdAndDeletedAtIsNull(currentUserId, pageable.toPageRequest());
         return mapEventPageToSummaryResponsePage(eventsPage);
     }
     @Override
@@ -196,11 +193,11 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @PreAuthorize("hasRole('USER')")
     public EventDetailsResponse createEvent(EventDetailsRequest eventDetailsRequest) {
-        String userEmail = authService.getCurrentUserEmail();
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "User not found with email: " + userEmail));
+        Long userId = authService.getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApplicationException(HttpStatus.NOT_FOUND, "User not found with id: " + userId));
 
-        log.info("Attempting to create event for user with email: {}", userEmail);
+        log.info("Attempting to create event for user with id: {}", userId);
 
         Event event = new Event();
         mapEventDetailsRequestToEvent(eventDetailsRequest, event);
@@ -231,31 +228,17 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
     public EventDetailsResponse updateEvent(Long id, EventDetailsRequest eventDetailsRequest) {
-        String currentUserEmail = authService.getCurrentUserEmail();
+        Long currentUserId = authService.getCurrentUserId();
         Event existingEvent = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id " + id));
+
         if (existingEvent.isDeleted()) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, "Cannot update a deleted event");
         }
 
-        User currentUser = userRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        if (!existingEvent.getOrganizer().getEmail().equals(currentUserEmail) && !currentUser.getRoles().contains(UserRole.ORGANIZER)) {
+        if (!existingEvent.getOrganizer().getId().equals(currentUserId)) {
             throw new ApplicationException(HttpStatus.FORBIDDEN, "You are not authorized to update this event");
         }
-
-        // Check if the image URL has changed
-//        String oldImageUrl = existingEvent.getImageUrl();
-//        String newImageUrl = eventDetailsRequest.getImageUrl();
-//        if (newImageUrl != null && !newImageUrl.equals(oldImageUrl)) {
-//            if (oldImageUrl != null) {
-//                // Delete the old image
-//                imageStorageService.deleteImage(oldImageUrl);
-//            }
-//            // Update the image URL
-//            existingEvent.setImageUrl(newImageUrl);
-//        }
 
         mapEventDetailsRequestToEvent(eventDetailsRequest, existingEvent);
         existingEvent.setUpdatedAt(Instant.now());
@@ -278,26 +261,30 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @PreAuthorize("hasRole('ORGANIZER')")
     public void deleteEvent(Long id) {
-        String currentUserEmail = authService.getCurrentUserEmail();
+        Long currentUserId = authService.getCurrentUserId();
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id " + id));
 
-        User currentUser = userRepository.findByEmail(currentUserEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        if (!event.getOrganizer().getEmail().equals(currentUserEmail) && !currentUser.getRoles().contains(UserRole.ORGANIZER)) {
+        if (!event.getOrganizer().getId().equals(currentUserId)) {
             throw new ApplicationException(HttpStatus.FORBIDDEN, "You are not authorized to delete this event");
         }
-        // Delete the associated image if it exists
-//        String imageUrl = event.getImageUrl();
-//        if (imageUrl != null && !imageUrl.isEmpty()) {
-//            imageStorageService.deleteImage(imageUrl);
-//        }
+
         event.softDelete();
         event.setUpdatedAt(Instant.now());
         eventRepository.save(event);
         evictFilteredEventsCache();
     }
+    // Check if the image URL has changed
+//        String oldImageUrl = existingEvent.getImageUrl();
+//        String newImageUrl = eventDetailsRequest.getImageUrl();
+//        if (newImageUrl != null && !newImageUrl.equals(oldImageUrl)) {
+//            if (oldImageUrl != null) {
+//                // Delete the old image
+//                imageStorageService.deleteImage(oldImageUrl);
+//            }
+//            // Update the image URL
+//            existingEvent.setImageUrl(newImageUrl);
+//        }
 
 //    private User mapUserToOrganizer(User user) {
 //        Organizer organizer = new Organizer();
@@ -318,7 +305,7 @@ public class EventServiceImpl implements EventService {
         response.setLocation(event.getLocation());
         response.setStartTime(event.getStartTime());
         response.setEndTime(event.getEndTime());
-        response.setPrice(event.getPrice());
+//        response.setPrice(event.getPrice());
         response.setIsFree(event.getIsFree());
         response.setAvailableSeats(event.getAvailableSeats());
         response.setEventUrl(event.getEventUrl());
@@ -337,7 +324,7 @@ public class EventServiceImpl implements EventService {
         response.setImageUrl(event.getImageUrl());
         response.setStartTime(event.getStartTime());
         response.setLocation(event.getLocation());
-        response.setPrice(event.getPrice());
+//        response.setPrice(event.getPrice());
         response.setIsFree(event.getIsFree());
         response.setOrganizer(event.getOrganizer().getName());
         return response;
@@ -372,10 +359,9 @@ public class EventServiceImpl implements EventService {
         event.setLocation(eventDetailsRequest.getLocation());
         event.setStartTime(eventDetailsRequest.getStartTime());
         event.setEndTime(eventDetailsRequest.getEndTime());
-        event.setPrice(eventDetailsRequest.getPrice());
+//        event.setPrice(eventDetailsRequest.getPrice());
         event.setIsFree(eventDetailsRequest.getIsFree());
         event.setAvailableSeats(eventDetailsRequest.getAvailableSeats());
         event.setEventUrl(eventDetailsRequest.getEventUrl());
     }
-
 }
