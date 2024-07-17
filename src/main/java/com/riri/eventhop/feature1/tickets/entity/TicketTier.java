@@ -25,6 +25,9 @@ public class TicketTier {
     @Min(value = 0, message = "Price must be greater than or equal to {value}")
     private BigDecimal price;
 
+    @NotNull(message = "Free status must be provided")
+    private Boolean isFree;
+
     @NotNull(message = "Quota must be provided")
     @Min(value = 0, message = "Quota must be greater than or equal to {value}")
     private Integer quota;

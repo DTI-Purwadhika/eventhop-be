@@ -61,11 +61,11 @@ public class Event {
 
     @NotNull(message = "End time must be provided")
     private Instant endTime;
-
-    @Min(value = 0, message = "Price must be greater than or equal to {value}")
-    private BigDecimal price;
-
-    private Boolean isFree;
+//
+//    @Min(value = 0, message = "Price must be greater than or equal to {value}")
+//    private BigDecimal price;
+//
+//    private Boolean isFree;
 
     @NotNull(message = "Available seats must be provided")
     @Min(value = 0, message = "Available seats must be greater than or equal to {value}")
@@ -93,9 +93,6 @@ public class Event {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketTier> ticketTiers = new ArrayList<>();
-
-//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-//    private List<Transaction> transactions;
 
     public void addTicketTier(TicketTier ticketTier) {
         ticketTiers.add(ticketTier);

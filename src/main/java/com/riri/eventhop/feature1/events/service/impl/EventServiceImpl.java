@@ -209,6 +209,7 @@ public class EventServiceImpl implements EventService {
             TicketTier ticketTier = new TicketTier();
             ticketTier.setName(tierRequest.getName());
             ticketTier.setPrice(tierRequest.getPrice());
+            ticketTier.setIsFree(tierRequest.getIsFree());
             ticketTier.setQuota(tierRequest.getQuota());
             event.addTicketTier(ticketTier);
         }
@@ -305,8 +306,8 @@ public class EventServiceImpl implements EventService {
         response.setLocation(event.getLocation());
         response.setStartTime(event.getStartTime());
         response.setEndTime(event.getEndTime());
-        response.setPrice(event.getPrice());
-        response.setIsFree(event.getIsFree());
+//        response.setPrice(event.getPrice());
+//        response.setIsFree(event.getIsFree());
         response.setAvailableSeats(event.getAvailableSeats());
         response.setEventUrl(event.getEventUrl());
         response.setOrganizer(event.getOrganizer().getName());
@@ -318,14 +319,14 @@ public class EventServiceImpl implements EventService {
 
     private EventSummaryResponse mapEventToSummaryResponse(Event event) {
         EventSummaryResponse response = new EventSummaryResponse();
-        response.setId(event.getId());  // Include the id
+        response.setId(event.getId());
         response.setTitle(event.getTitle());
         response.setEventCategory(event.getEventCategory());
         response.setImageUrl(event.getImageUrl());
         response.setStartTime(event.getStartTime());
         response.setLocation(event.getLocation());
-        response.setPrice(event.getPrice());
-        response.setIsFree(event.getIsFree());
+//        response.setPrice(event.getPrice());
+//        response.setIsFree(event.getIsFree());
         response.setOrganizer(event.getOrganizer().getName());
         return response;
     }
@@ -344,6 +345,7 @@ public class EventServiceImpl implements EventService {
         response.setId(ticketTier.getId());
         response.setName(ticketTier.getName());
         response.setPrice(ticketTier.getPrice());
+        response.setIsFree(ticketTier.getIsFree());
         response.setQuota(ticketTier.getQuota());
         response.setRemainingQuota(ticketTier.getRemainingQuota());
         return response;
@@ -359,8 +361,8 @@ public class EventServiceImpl implements EventService {
         event.setLocation(eventDetailsRequest.getLocation());
         event.setStartTime(eventDetailsRequest.getStartTime());
         event.setEndTime(eventDetailsRequest.getEndTime());
-        event.setPrice(eventDetailsRequest.getPrice());
-        event.setIsFree(eventDetailsRequest.getIsFree());
+//        event.setPrice(eventDetailsRequest.getPrice());
+//        event.setIsFree(eventDetailsRequest.getIsFree());
         event.setAvailableSeats(eventDetailsRequest.getAvailableSeats());
         event.setEventUrl(eventDetailsRequest.getEventUrl());
     }

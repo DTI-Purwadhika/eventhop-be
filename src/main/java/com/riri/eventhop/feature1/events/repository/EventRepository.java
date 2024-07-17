@@ -25,7 +25,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "AND (:untilDate IS NULL OR e.end_time <= CAST(:untilDate AS TIMESTAMP)) " +
             "AND (:location IS NULL OR e.locations = :location) " +
             "AND (:userId IS NULL OR e.organizer_id = CAST(:userId AS BIGINT)) " +
-            "AND (:isFree IS NULL OR e.is_free = :isFree) " +
+            "AND (:isFree IS NULL OR tt.is_free = :isFree) " +
             "ORDER BY e.id " +
             "LIMIT :limit OFFSET :offset",
             nativeQuery = true)
@@ -53,7 +53,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "AND (:untilDate IS NULL OR e.end_time <= CAST(:untilDate AS TIMESTAMP)) " +
             "AND (:location IS NULL OR e.locations = :location) " +
             "AND (:userId IS NULL OR e.organizer_id = CAST(:userId AS BIGINT)) " +
-            "AND (:isFree IS NULL OR e.is_free = :isFree)",
+            "AND (:isFree IS NULL OR tt.is_free = :isFree)",
             nativeQuery = true)
     long countFilteredEvents(
             @Param("category") String category,
